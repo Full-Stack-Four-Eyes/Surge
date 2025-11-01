@@ -1,15 +1,18 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './JobDetailModal.css'
 
 export default function JobDetailModal({ job, matchScore, isBookmarked, onBookmark, applicationStatus, onApply, onMessage, onClose, isFinder, onEdit, onDelete, onMarkFilled, onViewApplicants, onViewJob }) {
   const [showFullDescription, setShowFullDescription] = useState(false)
+  const viewTrackedRef = useRef(new Set())
 
   // Track view when modal opens (only for seekers, not finders viewing their own jobs)
   useEffect(() => {
-    if (onViewJob && job?.id) {
+    // Track view once per job modal open
+    if (onViewJob && job?.id && !isFinder && !viewTrackedRef.current.has(job.id)) {
+      viewTrackedRef.current.add(job.id)
       onViewJob(job.id)
     }
-  }, []) // Only run once when modal opens
+  }, [job?.id, onViewJob, isFinder])
 
   const getStatusBadge = () => {
     if (job.isFilled) {

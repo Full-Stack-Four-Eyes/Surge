@@ -36,6 +36,12 @@ export default function Navbar() {
           </Link>
           
           <div className="nav-links">
+            {!user && (
+              <>
+                <Link to="/about" className="nav-link">About</Link>
+                <Link to="/contact" className="nav-link">Contact</Link>
+              </>
+            )}
             {user ? (
               <>
                 <Link to="/dashboard" className="nav-link">Dashboard</Link>
@@ -69,7 +75,44 @@ export default function Navbar() {
       {showChatList && user && (
         <div className="chat-list-overlay" onClick={() => setShowChatList(false)}>
           <div className="chat-list-container" onClick={(e) => e.stopPropagation()}>
-            <ChatList onSelectChat={handleChatSelect} />
+            <div style={{ 
+              background: 'white', 
+              borderRadius: 'var(--border-radius-lg)', 
+              padding: '1.5rem',
+              boxShadow: 'var(--shadow-xl)',
+              maxHeight: '500px',
+              overflowY: 'auto',
+              width: '100%',
+              maxWidth: '400px',
+              position: 'relative'
+            }}>
+              <button
+                onClick={() => setShowChatList(false)}
+                style={{
+                  position: 'absolute',
+                  top: '1rem',
+                  right: '1rem',
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '1.5rem',
+                  color: 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '50%',
+                  transition: 'background-color 0.2s',
+                  zIndex: 10
+                }}
+                onMouseEnter={(e) => e.target.style.background = 'var(--bg-secondary)'}
+                onMouseLeave={(e) => e.target.style.background = 'none'}
+              >
+                ×
+              </button>
+              <ChatList onSelectChat={handleChatSelect} />
+            </div>
           </div>
         </div>
       )}

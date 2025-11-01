@@ -323,7 +323,6 @@ export default function TalentSeekerDashboard() {
                               onApply={() => setSelectedJob(job)}
                               onMessage={() => handleMessage(job)}
                               onViewDetails={() => {
-                                handleViewJob(job.id)
                                 setSelectedJobDetail(job)
                               }}
                           />
@@ -355,7 +354,6 @@ export default function TalentSeekerDashboard() {
                               onApply={() => setSelectedJob(job)}
                               onMessage={() => handleMessage(job)}
                               onViewDetails={() => {
-                                handleViewJob(job.id)
                                 setSelectedJobDetail(job)
                               }}
                           />
@@ -387,7 +385,6 @@ export default function TalentSeekerDashboard() {
                                 applicationDate={app.createdAt}
                                 onMessage={() => handleMessage(job)}
                                 onViewDetails={() => {
-                                handleViewJob(job.id)
                                 setSelectedJobDetail(job)
                               }}
                                 onBookmark={() => handleBookmark(job.id)}
@@ -428,7 +425,6 @@ export default function TalentSeekerDashboard() {
                                 onApply={() => setSelectedJob(job)}
                                 onMessage={() => handleMessage(job)}
                                 onViewDetails={() => {
-                                handleViewJob(job.id)
                                 setSelectedJobDetail(job)
                               }}
                             />

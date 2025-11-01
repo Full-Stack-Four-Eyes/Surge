@@ -121,6 +121,12 @@
   }
 }
 
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (max-width: 768px) {
   .chat-list-overlay {
     padding: 80px 1rem 1rem 1rem;
