@@ -21,6 +21,11 @@
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: var(--shadow-lg);
+  transition: var(--transition);
+}
+
+.dark-mode .job-form-card {
+  background: var(--bg-dark-secondary);
 }
 
 .job-form-card h2 {

@@ -7,6 +7,13 @@
   border: 2px solid var(--border-color);
   position: relative;
   overflow: hidden;
+  min-width: 0;
+  word-wrap: break-word;
+}
+
+.dark-mode .job-card {
+  background: var(--bg-dark-secondary);
+  border-color: var(--border-dark);
 }
 
 .job-card::before {
@@ -39,6 +46,10 @@
   background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(249, 250, 251, 1) 100%);
 }
 
+.dark-mode .job-card.clickable:hover {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 1) 0%, rgba(51, 65, 85, 1) 100%);
+}
+
 .job-card-header {
   display: flex;
   justify-content: space-between;
@@ -56,6 +67,9 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .job-meta {
@@ -64,6 +78,10 @@
   flex-wrap: wrap;
   font-size: 0.875rem;
   color: var(--text-secondary);
+}
+
+.dark-mode .job-meta {
+  color: var(--text-dark-secondary);
 }
 
 .job-type {
@@ -125,6 +143,13 @@
   color: var(--text-secondary);
   margin-bottom: 1rem;
   line-height: 1.6;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.dark-mode .job-description {
+  color: var(--text-dark-secondary);
 }
 
 .job-tags {
@@ -156,6 +181,10 @@
   margin-bottom: 1rem;
 }
 
+.dark-mode .job-skills {
+  color: var(--text-dark-secondary);
+}
+
 .job-card-footer {
   display: flex;
   justify-content: space-between;
@@ -165,6 +194,8 @@
   border-top: 1px solid var(--border-color);
   gap: 1rem;
   flex-wrap: wrap;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .job-stats {
@@ -174,18 +205,36 @@
   color: var(--text-secondary);
 }
 
+.dark-mode .job-stats {
+  color: var(--text-dark-secondary);
+}
+
 .job-actions {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
   align-items: center;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .job-actions .btn {
   white-space: nowrap;
   font-size: 0.8125rem;
   padding: 0.5rem 0.875rem;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .job-actions {
+    width: 100%;
+  }
+  
+  .job-actions .btn {
+    flex: 1;
+    min-width: 0;
+  }
 }
 
 .badge {

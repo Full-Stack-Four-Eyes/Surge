@@ -19,6 +19,11 @@
   width: 100%;
   max-width: 450px;
   box-shadow: var(--shadow-lg);
+  transition: var(--transition);
+}
+
+.dark-mode .auth-card {
+  background: var(--bg-dark-secondary);
 }
 
 .auth-card h1 {
@@ -56,6 +61,14 @@
   border-radius: 0.5rem;
   font-size: 1rem;
   transition: border-color 0.2s;
+  background: white;
+  color: var(--text-primary);
+}
+
+.dark-mode .form-group input {
+  background: var(--bg-tertiary);
+  border-color: var(--border-dark);
+  color: var(--text-dark);
 }
 
 .form-group input:focus {
@@ -128,6 +141,13 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
+  color: var(--text-primary);
+}
+
+.dark-mode .oauth-btn {
+  background: var(--bg-tertiary);
+  border-color: var(--border-dark);
+  color: var(--text-dark);
 }
 
 .oauth-btn:hover {

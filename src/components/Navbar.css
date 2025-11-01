@@ -6,6 +6,12 @@
   top: 0;
   z-index: 100;
   border-bottom: 1px solid var(--border-color);
+  transition: var(--transition);
+}
+
+.dark-mode .navbar {
+  background: rgba(15, 23, 42, 0.95);
+  border-bottom-color: var(--border-dark);
 }
 
 .nav-container {
@@ -48,6 +54,14 @@
   background-color: var(--bg-secondary);
 }
 
+.dark-mode .nav-link {
+  color: var(--text-dark);
+}
+
+.dark-mode .nav-link:hover {
+  background-color: var(--bg-tertiary);
+}
+
 .nav-button {
   background: var(--bg-gradient);
   color: white;
@@ -88,6 +102,27 @@
 
 .chat-toggle {
   position: relative;
+  color: var(--text-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.chat-toggle:hover {
+  background-color: var(--bg-secondary);
+}
+
+.dark-mode .chat-toggle {
+  color: var(--text-dark);
+}
+
+.dark-mode .chat-toggle:hover {
+  background-color: var(--bg-tertiary);
 }
 
 .chat-list-overlay {
@@ -130,6 +165,46 @@
   }
 }
 
+.dark-mode-toggle {
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  padding: 0.5rem;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  box-shadow: var(--shadow);
+}
+
+.dark-mode .dark-mode-toggle {
+  background: var(--bg-tertiary);
+  border-color: var(--border-dark);
+}
+
+.dark-mode-toggle:hover {
+  transform: translateY(-2px) rotate(15deg);
+  box-shadow: var(--shadow-md);
+  background: var(--primary-light);
+}
+
+.dark-mode .dark-mode-toggle:hover {
+  background: var(--primary-color);
+}
+
+.chat-list-wrapper {
+  background: white;
+  transition: var(--transition);
+}
+
+.dark-mode .chat-list-wrapper {
+  background: var(--bg-dark-secondary);
+}
+
 @media (max-width: 768px) {
   .nav-container {
     padding: 1rem;
@@ -137,10 +212,7 @@
   
   .nav-links {
     gap: 0.5rem;
-  }
-  
-  .role-switch-btn {
-    display: none;
+    flex-wrap: wrap;
   }
 
   .chat-list-overlay {

@@ -1,12 +1,15 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.jsx'
+import { useDarkMode } from '../hooks/useDarkMode.jsx'
 import ChatList from './ChatList'
 import Chat from './Chat'
+import RoleToggle from './RoleToggle'
 import './Navbar.css'
 
 export default function Navbar() {
-  const { user, logout, userData, switchRole } = useAuth()
+  const { user, logout, userData } = useAuth()
+  const { isDarkMode, toggleDarkMode } = useDarkMode()
   const navigate = useNavigate()
   const [showChatList, setShowChatList] = useState(false)
   const [chatUser, setChatUser] = useState(null)
@@ -14,12 +17,6 @@ export default function Navbar() {
   const handleLogout = async () => {
     await logout()
     navigate('/')
-  }
-
-  const handleRoleSwitch = async () => {
-    const newRole = userData?.role === 'finder' ? 'seeker' : 'finder'
-    await switchRole(newRole)
-    navigate(`/${newRole}`)
   }
 
   const handleChatSelect = (userId, userName) => {
@@ -53,11 +50,15 @@ export default function Navbar() {
                 >
                   💬 Messages
                 </button>
-                {userData && (
-                  <button onClick={handleRoleSwitch} className="role-switch-btn">
-                    🔄 {userData.role === 'finder' ? 'Seeker' : 'Finder'}
-                  </button>
-                )}
+                {userData && <RoleToggle />}
+                <button 
+                  onClick={toggleDarkMode} 
+                  className="dark-mode-toggle"
+                  title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                  aria-label="Toggle dark mode"
+                >
+                  {isDarkMode ? '☀️' : '🌙'}
+                </button>
                 <button onClick={handleLogout} className="nav-button">
                   Logout
                 </button>
@@ -66,6 +67,14 @@ export default function Navbar() {
               <>
                 <Link to="/login" className="nav-link">Login</Link>
                 <Link to="/signup" className="nav-button">Sign Up</Link>
+                <button 
+                  onClick={toggleDarkMode} 
+                  className="dark-mode-toggle"
+                  title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                  aria-label="Toggle dark mode"
+                >
+                  {isDarkMode ? '☀️' : '🌙'}
+                </button>
               </>
             )}
           </div>
@@ -75,8 +84,7 @@ export default function Navbar() {
       {showChatList && user && (
         <div className="chat-list-overlay" onClick={() => setShowChatList(false)}>
           <div className="chat-list-container" onClick={(e) => e.stopPropagation()}>
-            <div style={{ 
-              background: 'white', 
+            <div className="chat-list-wrapper" style={{ 
               borderRadius: 'var(--border-radius-lg)', 
               padding: '1.5rem',
               boxShadow: 'var(--shadow-xl)',

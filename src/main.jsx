@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from './hooks/useAuth.jsx'
+import { DarkModeProvider } from './hooks/useDarkMode.jsx'
 import App from './App'
 import './index.css'
 
@@ -16,9 +17,11 @@ try {
   ReactDOM.createRoot(rootElement).render(
     <React.StrictMode>
       <BrowserRouter>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
+        <DarkModeProvider>
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+        </DarkModeProvider>
       </BrowserRouter>
     </React.StrictMode>,
   )

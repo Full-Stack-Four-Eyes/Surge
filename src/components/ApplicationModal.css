@@ -21,6 +21,11 @@
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: var(--shadow-lg);
+  transition: var(--transition);
+}
+
+.dark-mode .modal-content {
+  background: var(--bg-dark-secondary);
 }
 
 .modal-header {
@@ -69,6 +74,10 @@
   margin-top: 0.5rem;
   color: var(--text-secondary);
   font-size: 0.875rem;
+}
+
+.dark-mode .file-name {
+  color: var(--text-dark-secondary);
 }
 
 .error-message {

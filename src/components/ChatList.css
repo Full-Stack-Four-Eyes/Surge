@@ -7,6 +7,11 @@
   overflow-y: auto;
   width: 100%;
   max-width: 400px;
+  transition: var(--transition);
+}
+
+.dark-mode .chat-list {
+  background: var(--bg-dark-secondary);
 }
 
 .chat-list h3 {
@@ -16,11 +21,20 @@
   font-weight: 600;
 }
 
+.dark-mode .chat-list h3 {
+  color: var(--text-dark);
+}
+
 .chat-list-loading,
 .no-chats {
   text-align: center;
   padding: 2rem;
   color: var(--text-secondary);
+}
+
+.dark-mode .chat-list-loading,
+.dark-mode .no-chats {
+  color: var(--text-dark-secondary);
 }
 
 .chats {
@@ -41,16 +55,30 @@
   background: var(--bg-secondary);
 }
 
+.dark-mode .chat-item {
+  background: var(--bg-tertiary);
+  border-color: var(--border-dark);
+}
+
 .chat-item:hover {
   background: var(--bg-tertiary);
   border-color: var(--primary-light);
   transform: translateX(4px);
 }
 
+.dark-mode .chat-item:hover {
+  background: var(--bg-dark);
+  border-color: var(--primary-light);
+}
+
 .chat-item.unread {
   background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
   border-color: var(--primary-color);
   box-shadow: var(--shadow);
+}
+
+.dark-mode .chat-item.unread {
+  background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%);
 }
 
 .chat-item-content {
@@ -68,12 +96,20 @@
   text-overflow: ellipsis;
 }
 
+.dark-mode .chat-item-content h4 {
+  color: var(--text-dark);
+}
+
 .last-message {
   color: var(--text-secondary);
   font-size: 0.875rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.dark-mode .last-message {
+  color: var(--text-dark-secondary);
 }
 
 .unread-badge {

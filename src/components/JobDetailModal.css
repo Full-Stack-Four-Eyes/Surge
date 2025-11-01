@@ -33,6 +33,12 @@
   overflow-y: auto;
   animation: slideUp 0.3s ease-out;
   border: 2px solid var(--border-color);
+  transition: var(--transition);
+}
+
+.dark-mode .job-detail-modal {
+  background: var(--bg-dark-secondary);
+  border-color: var(--border-dark);
 }
 
 @keyframes slideUp {

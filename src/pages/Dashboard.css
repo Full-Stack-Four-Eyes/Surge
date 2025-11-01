@@ -70,6 +70,12 @@
   padding: 2.5rem;
   box-shadow: var(--shadow-xl);
   border: 1px solid rgba(255, 255, 255, 0.8);
+  transition: var(--transition);
+}
+
+.dark-mode .dashboard-content {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: rgba(51, 65, 85, 0.8);
 }
 
 .section-header {
@@ -100,6 +106,13 @@
   background: white;
   transition: var(--transition);
   box-shadow: var(--shadow);
+  color: var(--text-primary);
+}
+
+.dark-mode .search-input {
+  background: var(--bg-dark-secondary);
+  border-color: var(--border-dark);
+  color: var(--text-dark);
 }
 
 .search-input:focus {
@@ -117,6 +130,13 @@
   background: white;
   transition: var(--transition);
   box-shadow: var(--shadow);
+  color: var(--text-primary);
+}
+
+.dark-mode .filter-select {
+  background: var(--bg-dark-secondary);
+  border-color: var(--border-dark);
+  color: var(--text-dark);
 }
 
 .filter-select:hover {
@@ -133,6 +153,10 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
+}
+
+.jobs-grid > * {
+  min-width: 0;
 }
 
 @media (max-width: 1200px) {

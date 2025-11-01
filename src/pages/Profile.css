@@ -1,6 +1,11 @@
 .profile-page {
   min-height: 100vh;
   background: var(--bg-secondary);
+  transition: var(--transition);
+}
+
+.dark-mode .profile-page {
+  background: var(--bg-dark);
 }
 
 .profile-container {
@@ -14,11 +19,20 @@
   border-radius: 1rem;
   padding: 2rem;
   box-shadow: var(--shadow-lg);
+  transition: var(--transition);
+}
+
+.dark-mode .profile-card {
+  background: var(--bg-dark-secondary);
 }
 
 .profile-card h1 {
   margin-bottom: 2rem;
   color: var(--text-primary);
+}
+
+.dark-mode .profile-card h1 {
+  color: var(--text-dark);
 }
 
 .profile-form {
@@ -39,6 +53,10 @@
   color: var(--text-primary);
 }
 
+.dark-mode .form-group label {
+  color: var(--text-dark);
+}
+
 .form-group input,
 .form-group select,
 .form-group textarea {
@@ -48,6 +66,16 @@
   font-size: 1rem;
   font-family: inherit;
   transition: border-color 0.2s;
+  background: white;
+  color: var(--text-primary);
+}
+
+.dark-mode .form-group input,
+.dark-mode .form-group select,
+.dark-mode .form-group textarea {
+  background: var(--bg-tertiary);
+  border-color: var(--border-dark);
+  color: var(--text-dark);
 }
 
 .form-group input:focus,
@@ -133,6 +161,11 @@
 .role-switch-section {
   padding-top: 2rem;
   border-top: 2px solid var(--border-color);
+  transition: var(--transition);
+}
+
+.dark-mode .role-switch-section {
+  border-top-color: var(--border-dark);
 }
 
 .role-switch-section h2 {
@@ -140,9 +173,17 @@
   color: var(--text-primary);
 }
 
+.dark-mode .role-switch-section h2 {
+  color: var(--text-dark);
+}
+
 .role-switch-section p {
   color: var(--text-secondary);
   margin-bottom: 1rem;
+}
+
+.dark-mode .role-switch-section p {
+  color: var(--text-dark-secondary);
 }
 
 .role-buttons {
@@ -158,12 +199,22 @@
   margin-bottom: 1rem;
 }
 
+.dark-mode .success-message {
+  background: #064e3b;
+  color: #d1fae5;
+}
+
 .error-message {
   background: #fee2e2;
   color: #991b1b;
   padding: 0.75rem;
   border-radius: 0.5rem;
   margin-bottom: 1rem;
+}
+
+.dark-mode .error-message {
+  background: #7f1d1d;
+  color: #fecaca;
 }
 
 @media (max-width: 768px) {
