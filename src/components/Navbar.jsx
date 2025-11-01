@@ -29,7 +29,8 @@ export default function Navbar() {
       <nav className="navbar">
         <div className="nav-container">
           <Link to="/" className="nav-logo">
-            🎓 CampusConnect
+            <img src="/favicon.ico" alt="CampusConnect" className="logo-icon" />
+            <span>CampusConnect</span>
           </Link>
           
           <div className="nav-links">

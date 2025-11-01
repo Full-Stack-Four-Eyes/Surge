@@ -9,7 +9,6 @@ import JobCard from '../components/JobCard'
 import JobDetailModal from '../components/JobDetailModal'
 import ApplicantList from '../components/ApplicantList'
 import Analytics from '../components/Analytics'
-import SeedJobsButton from '../components/SeedJobsButton'
 import './Dashboard.css'
 
 export default function TalentFinderDashboard() {
@@ -241,7 +240,6 @@ export default function TalentFinderDashboard() {
         )}
       </div>
 
-      <SeedJobsButton />
       <Footer />
     </div>
   )

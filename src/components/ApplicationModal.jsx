@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
-import { storage } from '../config/firebase'
+import { supabase, RESUME_BUCKET_NAME } from '../config/supabase'
 import './ApplicationModal.css'
 
 export default function ApplicationModal({ job, onClose, onSubmit }) {
@@ -45,9 +44,27 @@ export default function ApplicationModal({ job, onClose, onSubmit }) {
         try {
           // Sanitize filename to avoid issues
           const sanitizedName = resume.name.replace(/[^a-zA-Z0-9._-]/g, '_')
-          const resumeRef = ref(storage, `resumes/${job.id}_${Date.now()}_${sanitizedName}`)
-          await uploadBytes(resumeRef, resume)
-          resumeUrl = await getDownloadURL(resumeRef)
+          const fileName = `${job.id}_${Date.now()}_${sanitizedName}`
+          const filePath = `resumes/${fileName}`
+
+          // Upload file to Supabase Storage
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from(RESUME_BUCKET_NAME)
+            .upload(filePath, resume, {
+              cacheControl: '3600',
+              upsert: false
+            })
+
+          if (uploadError) {
+            throw uploadError
+          }
+
+          // Get public URL for the uploaded file (getPublicUrl is synchronous)
+          const { data: urlData } = supabase.storage
+            .from(RESUME_BUCKET_NAME)
+            .getPublicUrl(filePath)
+          
+          resumeUrl = urlData.publicUrl
         } catch (uploadError) {
           console.error('Upload error:', uploadError)
           setError('Failed to upload resume. Please try again or submit without a resume.')
@@ -122,4 +139,3 @@ export default function ApplicationModal({ job, onClose, onSubmit }) {
     </div>
   )
 }
-
