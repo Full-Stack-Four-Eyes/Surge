@@ -1,9 +1,11 @@
 .navbar {
-  background: white;
-  box-shadow: var(--shadow-md);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   position: sticky;
   top: 0;
   z-index: 100;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .nav-container {
@@ -17,8 +19,16 @@
 
 .nav-logo {
   font-size: 1.5rem;
-  font-weight: bold;
-  color: var(--primary-color);
+  font-weight: 700;
+  background: var(--bg-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  transition: var(--transition);
+}
+
+.nav-logo:hover {
+  transform: scale(1.05);
 }
 
 .nav-links {
@@ -39,32 +49,85 @@
 }
 
 .nav-button {
-  background: var(--primary-color);
+  background: var(--bg-gradient);
   color: white;
   border: none;
-  padding: 0.5rem 1.5rem;
-  border-radius: 0.5rem;
-  font-weight: 500;
-  transition: background-color 0.2s;
+  padding: 0.625rem 1.5rem;
+  border-radius: var(--border-radius-sm);
+  font-weight: 600;
+  transition: var(--transition);
+  box-shadow: var(--shadow-md);
 }
 
 .nav-button:hover {
-  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.nav-button:active {
+  transform: translateY(0);
 }
 
 .role-switch-btn {
-  background: var(--secondary-color);
+  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
   color: white;
   border: none;
   padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
+  border-radius: var(--border-radius-sm);
   font-size: 0.875rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: var(--transition);
+  box-shadow: var(--shadow);
 }
 
 .role-switch-btn:hover {
-  background: #7c3aed;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.chat-toggle {
+  position: relative;
+}
+
+.chat-list-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 80px 2rem 2rem 2rem;
+  z-index: 999;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.chat-list-container {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 @media (max-width: 768px) {
@@ -78,6 +141,10 @@
   
   .role-switch-btn {
     display: none;
+  }
+
+  .chat-list-overlay {
+    padding: 80px 1rem 1rem 1rem;
   }
 }
 

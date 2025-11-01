@@ -5,8 +5,10 @@ import { db } from '../config/firebase'
 import Navbar from '../components/Navbar'
 import JobPostForm from '../components/JobPostForm'
 import JobCard from '../components/JobCard'
+import JobDetailModal from '../components/JobDetailModal'
 import ApplicantList from '../components/ApplicantList'
 import Analytics from '../components/Analytics'
+import SeedJobsButton from '../components/SeedJobsButton'
 import './Dashboard.css'
 
 export default function TalentFinderDashboard() {
@@ -15,6 +17,7 @@ export default function TalentFinderDashboard() {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('posts')
   const [selectedJob, setSelectedJob] = useState(null)
+  const [selectedJobDetail, setSelectedJobDetail] = useState(null)
   const [showJobForm, setShowJobForm] = useState(false)
   const [editingJob, setEditingJob] = useState(null)
 
@@ -178,6 +181,7 @@ export default function TalentFinderDashboard() {
                     onDelete={() => handleDeleteJob(job.id)}
                     onMarkFilled={() => handleMarkAsFilled(job.id)}
                     onViewApplicants={() => setSelectedJob(job)}
+                    onViewDetails={() => setSelectedJobDetail(job)}
                   />
                 ))
               )}
@@ -195,7 +199,34 @@ export default function TalentFinderDashboard() {
             onClose={() => setSelectedJob(null)}
           />
         )}
+
+        {selectedJobDetail && (
+          <JobDetailModal
+            job={selectedJobDetail}
+            onEdit={() => {
+              setSelectedJobDetail(null)
+              setEditingJob(selectedJobDetail)
+              setShowJobForm(true)
+            }}
+            onDelete={() => {
+              setSelectedJobDetail(null)
+              handleDeleteJob(selectedJobDetail.id)
+            }}
+            onMarkFilled={() => {
+              setSelectedJobDetail(null)
+              handleMarkAsFilled(selectedJobDetail.id)
+            }}
+            onViewApplicants={() => {
+              setSelectedJobDetail(null)
+              setSelectedJob(selectedJobDetail)
+            }}
+            onClose={() => setSelectedJobDetail(null)}
+            isFinder={true}
+          />
+        )}
       </div>
+
+      <SeedJobsButton />
     </div>
   )
 }

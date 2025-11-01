@@ -20,52 +20,113 @@ export const useAuth = () => {
   return useContext(AuthContext)
 }
 
+// Helper function to extract display name from email
+function getDefaultDisplayName(email, displayName) {
+  if (displayName && displayName.trim()) {
+    return displayName.trim()
+  }
+  if (email) {
+    // Extract part before @ and capitalize first letter
+    const emailPart = email.split('@')[0]
+    return emailPart.charAt(0).toUpperCase() + emailPart.slice(1)
+  }
+  return 'User'
+}
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [userData, setUserData] = useState(null)
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        setUser(firebaseUser)
-        // Fetch user data from Firestore
-        const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid))
-        if (userDoc.exists()) {
-          setUserData({ id: firebaseUser.uid, ...userDoc.data() })
-        } else {
-          // Create user document if it doesn't exist
-          const newUserData = {
-            email: firebaseUser.email,
-            displayName: firebaseUser.displayName || '',
-            role: 'seeker', // default role
-            createdAt: serverTimestamp(),
-            skills: [],
-            interests: [],
-            bio: ''
-          }
-          await setDoc(doc(db, 'users', firebaseUser.uid), newUserData)
-          setUserData({ id: firebaseUser.uid, ...newUserData })
-        }
-      } else {
-        setUser(null)
-        setUserData(null)
-      }
-      setLoading(false)
-    })
+    let mounted = true
+    let timeoutId
 
-    return unsubscribe
+    // Timeout fallback to prevent infinite loading
+    timeoutId = setTimeout(() => {
+      if (mounted) {
+        console.warn('Auth loading timeout - proceeding without user')
+        setLoading(false)
+      }
+    }, 5000) // 5 second timeout
+
+    try {
+      const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        if (!mounted) return
+        
+        try {
+            if (firebaseUser) {
+              setUser(firebaseUser)
+              // Fetch user data from Firestore
+              const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid))
+              if (userDoc.exists()) {
+                const data = userDoc.data()
+                // Ensure displayName exists, use default if not
+                const finalDisplayName = data.displayName || getDefaultDisplayName(firebaseUser.email, firebaseUser.displayName)
+                
+                // Update displayName if it was missing
+                if (!data.displayName && finalDisplayName) {
+                  await setDoc(doc(db, 'users', firebaseUser.uid), {
+                    displayName: finalDisplayName
+                  }, { merge: true })
+                }
+                
+                setUserData({ id: firebaseUser.uid, ...data, displayName: finalDisplayName })
+              } else {
+                // Create user document if it doesn't exist
+                const defaultDisplayName = getDefaultDisplayName(firebaseUser.email, firebaseUser.displayName)
+                const newUserData = {
+                  email: firebaseUser.email,
+                  displayName: defaultDisplayName,
+                  role: 'seeker', // default role
+                  createdAt: serverTimestamp(),
+                  skills: [],
+                  interests: [],
+                  bio: ''
+                }
+                await setDoc(doc(db, 'users', firebaseUser.uid), newUserData)
+                setUserData({ id: firebaseUser.uid, ...newUserData })
+              }
+          } else {
+            setUser(null)
+            setUserData(null)
+          }
+        } catch (error) {
+          console.error('Error in auth state change handler:', error)
+        } finally {
+          if (mounted) {
+            clearTimeout(timeoutId)
+            setLoading(false)
+          }
+        }
+      })
+
+      return () => {
+        mounted = false
+        clearTimeout(timeoutId)
+        unsubscribe()
+      }
+    } catch (error) {
+      console.error('Error setting up auth listener:', error)
+      if (mounted) {
+        clearTimeout(timeoutId)
+        setLoading(false)
+      }
+    }
   }, [])
 
   const signup = async (email, password, displayName) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password)
-    await updateProfile(userCredential.user, { displayName })
+    
+    // Use provided displayName or default from email
+    const finalDisplayName = displayName?.trim() || getDefaultDisplayName(email, null)
+    await updateProfile(userCredential.user, { displayName: finalDisplayName })
     await sendEmailVerification(userCredential.user)
     
     // Create user document in Firestore
     const userData = {
       email,
-      displayName,
+      displayName: finalDisplayName,
       role: 'seeker',
       createdAt: serverTimestamp(),
       skills: [],
@@ -93,12 +154,18 @@ export const AuthProvider = ({ children }) => {
     const provider = new GoogleAuthProvider()
     const userCredential = await signInWithPopup(auth, provider)
     
-    // Check if user document exists, create if not
+    // Check if user document exists, create or update if not
     const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid))
+    const defaultDisplayName = getDefaultDisplayName(
+      userCredential.user.email, 
+      userCredential.user.displayName
+    )
+    
     if (!userDoc.exists()) {
+      // Create new user document
       const userData = {
         email: userCredential.user.email,
-        displayName: userCredential.user.displayName || '',
+        displayName: defaultDisplayName,
         role: 'seeker',
         createdAt: serverTimestamp(),
         skills: [],
@@ -106,6 +173,14 @@ export const AuthProvider = ({ children }) => {
         bio: ''
       }
       await setDoc(doc(db, 'users', userCredential.user.uid), userData)
+    } else {
+      // Update displayName if it's missing
+      const existingData = userDoc.data()
+      if (!existingData.displayName || existingData.displayName.trim() === '') {
+        await setDoc(doc(db, 'users', userCredential.user.uid), {
+          displayName: defaultDisplayName
+        }, { merge: true })
+      }
     }
     
     return userCredential
@@ -115,12 +190,18 @@ export const AuthProvider = ({ children }) => {
     const provider = new GithubAuthProvider()
     const userCredential = await signInWithPopup(auth, provider)
     
-    // Check if user document exists, create if not
+    // Check if user document exists, create or update if not
     const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid))
+    const defaultDisplayName = getDefaultDisplayName(
+      userCredential.user.email, 
+      userCredential.user.displayName
+    )
+    
     if (!userDoc.exists()) {
+      // Create new user document
       const userData = {
         email: userCredential.user.email,
-        displayName: userCredential.user.displayName || '',
+        displayName: defaultDisplayName,
         role: 'seeker',
         createdAt: serverTimestamp(),
         skills: [],
@@ -128,6 +209,14 @@ export const AuthProvider = ({ children }) => {
         bio: ''
       }
       await setDoc(doc(db, 'users', userCredential.user.uid), userData)
+    } else {
+      // Update displayName if it's missing
+      const existingData = userDoc.data()
+      if (!existingData.displayName || existingData.displayName.trim() === '') {
+        await setDoc(doc(db, 'users', userCredential.user.uid), {
+          displayName: defaultDisplayName
+        }, { merge: true })
+      }
     }
     
     return userCredential

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { doc, updateDoc, getDoc } from 'firebase/firestore'
+import { updateProfile } from 'firebase/auth'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { db } from '../config/firebase'
 import Navbar from '../components/Navbar'
@@ -23,8 +24,15 @@ export default function Profile() {
 
   useEffect(() => {
     if (userData) {
+      // Get default display name from email if displayName is empty
+      let displayName = userData.displayName || ''
+      if (!displayName.trim() && user?.email) {
+        const emailPart = user.email.split('@')[0]
+        displayName = emailPart.charAt(0).toUpperCase() + emailPart.slice(1)
+      }
+      
       setFormData({
-        displayName: userData.displayName || '',
+        displayName: displayName,
         bio: userData.bio || '',
         skills: userData.skills || [],
         interests: userData.interests || [],
@@ -32,8 +40,16 @@ export default function Profile() {
         experienceLevel: userData.experienceLevel || 'beginner',
         preferredJobTypes: userData.preferredJobTypes || []
       })
+    } else if (user) {
+      // If user exists but userData hasn't loaded yet, use email for default name
+      const emailPart = user.email?.split('@')[0] || 'User'
+      const defaultName = emailPart.charAt(0).toUpperCase() + emailPart.slice(1)
+      setFormData(prev => ({
+        ...prev,
+        displayName: prev.displayName || defaultName
+      }))
     }
-  }, [userData])
+  }, [userData, user])
 
   const handleChange = (e) => {
     setFormData({
@@ -91,7 +107,27 @@ export default function Profile() {
     setMessage('')
 
     try {
-      await updateDoc(doc(db, 'users', user.uid), formData)
+      // Ensure displayName is never empty - use default from email if needed
+      let finalDisplayName = formData.displayName?.trim()
+      if (!finalDisplayName && user?.email) {
+        const emailPart = user.email.split('@')[0]
+        finalDisplayName = emailPart.charAt(0).toUpperCase() + emailPart.slice(1)
+      }
+      
+      const updateData = {
+        ...formData,
+        displayName: finalDisplayName || 'User'
+      }
+      
+      await updateDoc(doc(db, 'users', user.uid), updateData)
+      
+      // Also update Firebase Auth profile
+      if (user.displayName !== finalDisplayName) {
+        await updateProfile(user, { displayName: finalDisplayName }).catch(err => {
+          console.warn('Could not update auth profile:', err)
+        })
+      }
+      
       setMessage('Profile updated successfully!')
       setTimeout(() => setMessage(''), 3000)
     } catch (error) {
@@ -122,15 +158,21 @@ export default function Profile() {
 
           <form onSubmit={handleSubmit} className="profile-form">
             <div className="form-group">
-              <label htmlFor="displayName">Full Name</label>
+              <label htmlFor="displayName">Full Name *</label>
               <input
                 type="text"
                 id="displayName"
                 name="displayName"
-                value={formData.displayName}
+                value={formData.displayName || ''}
                 onChange={handleChange}
                 required
+                placeholder={user?.email ? `Default: ${user.email.split('@')[0]}` : 'Your name'}
               />
+              {!formData.displayName && user?.email && (
+                <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                  Currently using default name from email. You can change it above.
+                </p>
+              )}
             </div>
 
             <div className="form-group">

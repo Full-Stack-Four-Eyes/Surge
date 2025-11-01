@@ -12,6 +12,8 @@ export default function JobCard({
   onMarkFilled,
   onViewApplicants,
   onApply,
+  onMessage,
+  onViewDetails,
   applicationDate
 }) {
   const getStatusBadge = () => {
@@ -34,8 +36,13 @@ export default function JobCard({
     return null
   }
 
+  const isClickable = onViewDetails
+
   return (
-    <div className="job-card">
+    <div 
+      className={`job-card ${isClickable ? 'clickable' : ''}`}
+      onClick={isClickable ? onViewDetails : undefined}
+    >
       <div className="job-card-header">
         <div>
           <h3 className="job-title">{job.title}</h3>
@@ -85,7 +92,7 @@ export default function JobCard({
           )}
         </div>
 
-        <div className="job-actions">
+        <div className="job-actions" onClick={(e) => e.stopPropagation()}>
           {getStatusBadge()}
           
           {isFinder ? (
@@ -110,6 +117,11 @@ export default function JobCard({
               {!applicationStatus && (
                 <button onClick={onApply} className="btn btn-sm btn-primary">
                   Apply Now
+                </button>
+              )}
+              {onMessage && (
+                <button onClick={onMessage} className="btn btn-sm btn-secondary">
+                  💬 Message
                 </button>
               )}
               <button

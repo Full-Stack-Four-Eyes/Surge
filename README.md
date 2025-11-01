@@ -50,30 +50,31 @@ CampusConnect is an on-campus talent discovery platform where students can conne
    npm install
    ```
 
-3. **Firebase Configuration**
+3. **Firebase Configuration** ⚠️ **REQUIRED**
    
-   - Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
-   - Enable Authentication:
-     - Email/Password
-     - Google
-     - GitHub
-   - Create a Firestore database
-   - Enable Storage
-   - Get your Firebase config from Project Settings
-
-4. **Environment Variables**
+   **IMPORTANT:** The `.env` file with Firebase credentials is not included in the repository for security. Each developer needs to set up their own Firebase project.
    
-   Create a `.env` file in the root directory:
-   ```env
-   VITE_FIREBASE_API_KEY=your-api-key
-   VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-   VITE_FIREBASE_PROJECT_ID=your-project-id
-   VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
-   VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
-   VITE_FIREBASE_APP_ID=your-app-id
+   **Quick Setup:**
+   ```bash
+   # Copy the example file
+   cp .env.example .env
+   # On Windows PowerShell:
+   Copy-Item .env.example .env
    ```
-
-   Or edit `src/config/firebase.js` directly with your Firebase config.
+   
+   Then:
+   1. Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
+   2. Enable Authentication (Email/Password, Google, GitHub)
+   3. Create Firestore Database (start in test mode for development)
+   4. Enable Storage (start in test mode)
+   5. Get your Firebase config from Project Settings > Your apps > Web app
+   6. Edit `.env` and replace placeholder values with your actual Firebase credentials
+   
+   **For detailed step-by-step instructions, see:**
+   - [`QUICK_FIREBASE_SETUP.md`](./QUICK_FIREBASE_SETUP.md) - Quick setup guide
+   - [`FIREBASE_SETUP.md`](./FIREBASE_SETUP.md) - Complete setup with security rules
+   
+   **Security Note:** Never commit your `.env` file to git. It's already in `.gitignore`.
 
 5. **Firestore Security Rules**
    
@@ -199,6 +200,30 @@ Built with Firestore's real-time listeners, enabling instant messaging between u
 ## License
 
 This project is open source and available under the MIT License.
+
+## Sample Data
+
+To populate the database with sample jobs for testing:
+
+1. Log in to the app
+2. Switch to **Talent Finder** mode
+3. Look for the "Add 20 Sample Jobs" button in the bottom-right corner
+4. Click it to populate Firestore with diverse sample jobs
+
+This will add 20 sample jobs across all job types:
+- Academic Projects (3 jobs)
+- Startup/Collaborations (4 jobs)
+- Part-time Jobs (5 jobs)
+- Competitions/Hackathons (4 jobs)
+- Team Search (4 jobs)
+
+These jobs are designed with varied skills and tags to test the match score algorithm and recommendations.
+
+## Feature Documentation
+
+For detailed information on how all features are implemented, see:
+- **[FEATURE_TRACKING.md](./FEATURE_TRACKING.md)** - Complete feature implementation guide
+- **[QUICK_FIREBASE_SETUP.md](./QUICK_FIREBASE_SETUP.md)** - Firebase setup instructions
 
 ## Support
 

@@ -18,6 +18,8 @@ import { rankJobs } from '../utils/jobMatching'
 import Navbar from '../components/Navbar'
 import JobCard from '../components/JobCard'
 import ApplicationModal from '../components/ApplicationModal'
+import JobDetailModal from '../components/JobDetailModal'
+import Chat from '../components/Chat'
 import './Dashboard.css'
 
 export default function TalentSeekerDashboard() {
@@ -31,12 +33,16 @@ export default function TalentSeekerDashboard() {
   const [selectedJob, setSelectedJob] = useState(null)
   const [applications, setApplications] = useState([])
   const [bookmarks, setBookmarks] = useState([])
+  const [chatUser, setChatUser] = useState(null)
+  const [selectedJobDetail, setSelectedJobDetail] = useState(null)
+  const [viewedJobs, setViewedJobs] = useState([])
 
   useEffect(() => {
     if (user) {
       fetchJobs()
       fetchApplications()
       fetchBookmarks()
+      fetchViewedJobs()
     }
   }, [user])
 
@@ -119,8 +125,8 @@ export default function TalentSeekerDashboard() {
     try {
       const isBookmarked = bookmarks.includes(jobId)
       const newBookmarks = isBookmarked
-          ? bookmarks.filter(id => id !== jobId)
-          : [...bookmarks, jobId]
+        ? bookmarks.filter(id => id !== jobId)
+        : [...bookmarks, jobId]
 
       await updateDoc(doc(db, 'users', user.uid), {
         bookmarks: newBookmarks
@@ -128,6 +134,76 @@ export default function TalentSeekerDashboard() {
       setBookmarks(newBookmarks)
     } catch (error) {
       console.error('Error updating bookmark:', error)
+    }
+  }
+
+  const handleMessage = async (job) => {
+    // Get job poster's info to open chat
+    try {
+      const posterDoc = await getDoc(doc(db, 'users', job.postedBy))
+      if (posterDoc.exists()) {
+        const posterData = posterDoc.data()
+        setChatUser({
+          id: job.postedBy,
+          name: posterData.displayName || posterData.email || 'Job Poster'
+        })
+      } else {
+        setChatUser({
+          id: job.postedBy,
+          name: 'Job Poster'
+        })
+      }
+    } catch (error) {
+      console.error('Error fetching job poster:', error)
+      setChatUser({
+        id: job.postedBy,
+        name: 'Job Poster'
+      })
+    }
+  }
+
+  const fetchViewedJobs = async () => {
+    if (!user) return
+    try {
+      const userDoc = await getDoc(doc(db, 'users', user.uid))
+      if (userDoc.exists()) {
+        const userData = userDoc.data()
+        setViewedJobs(userData.viewedJobs || [])
+      }
+    } catch (error) {
+      console.error('Error fetching viewed jobs:', error)
+    }
+  }
+
+  const handleViewJob = async (jobId) => {
+    // Only increment view if user hasn't viewed this job before
+    if (!viewedJobs.includes(jobId)) {
+      try {
+        // Add jobId to user's viewed jobs
+        const newViewedJobs = [...viewedJobs, jobId]
+        await updateDoc(doc(db, 'users', user.uid), {
+          viewedJobs: newViewedJobs
+        })
+        setViewedJobs(newViewedJobs)
+
+        // Increment view count on job
+        const jobDoc = await getDoc(doc(db, 'jobs', jobId))
+        if (jobDoc.exists()) {
+          const currentViews = jobDoc.data().views || 0
+          await updateDoc(doc(db, 'jobs', jobId), {
+            views: currentViews + 1
+          })
+          
+          // Update local jobs state
+          setJobs(prevJobs => 
+            prevJobs.map(job => 
+              job.id === jobId ? { ...job, views: currentViews + 1 } : job
+            )
+          )
+        }
+      } catch (error) {
+        console.error('Error tracking view:', error)
+      }
     }
   }
 
@@ -226,6 +302,11 @@ export default function TalentSeekerDashboard() {
                               onBookmark={() => handleBookmark(job.id)}
                               applicationStatus={getApplicationStatus(job.id)}
                               onApply={() => setSelectedJob(job)}
+                              onMessage={() => handleMessage(job)}
+                              onViewDetails={() => {
+                                handleViewJob(job.id)
+                                setSelectedJobDetail(job)
+                              }}
                           />
                       ))
                   )}
@@ -253,6 +334,11 @@ export default function TalentSeekerDashboard() {
                               onBookmark={() => handleBookmark(job.id)}
                               applicationStatus={getApplicationStatus(job.id)}
                               onApply={() => setSelectedJob(job)}
+                              onMessage={() => handleMessage(job)}
+                              onViewDetails={() => {
+                                handleViewJob(job.id)
+                                setSelectedJobDetail(job)
+                              }}
                           />
                       ))
                   )}
@@ -280,6 +366,10 @@ export default function TalentSeekerDashboard() {
                                 isFinder={false}
                                 applicationStatus={app.status}
                                 applicationDate={app.createdAt}
+                                onMessage={() => handleMessage(job)}
+                                onViewDetails={() => setSelectedJobDetail(job)}
+                                onBookmark={() => handleBookmark(job.id)}
+                                isBookmarked={bookmarks.includes(job.id)}
                             />
                         )
                       })
@@ -301,16 +391,18 @@ export default function TalentSeekerDashboard() {
                       jobs
                           .filter(job => bookmarks.includes(job.id))
                           .map(job => (
-                              <JobCard
-                                  key={job.id}
-                                  job={job}
-                                  isFinder={false}
-                                  matchScore={userData ? rankJobs([job], userData)[0]?.matchScore : null}
-                                  isBookmarked={true}
-                                  onBookmark={() => handleBookmark(job.id)}
-                                  applicationStatus={getApplicationStatus(job.id)}
-                                  onApply={() => setSelectedJob(job)}
-                              />
+                            <JobCard
+                                key={job.id}
+                                job={job}
+                                isFinder={false}
+                                matchScore={userData ? rankJobs([job], userData)[0]?.matchScore : null}
+                                isBookmarked={true}
+                                onBookmark={() => handleBookmark(job.id)}
+                                applicationStatus={getApplicationStatus(job.id)}
+                                onApply={() => setSelectedJob(job)}
+                                onMessage={() => handleMessage(job)}
+                                onViewDetails={() => setSelectedJobDetail(job)}
+                            />
                           ))
                   )}
                 </div>
@@ -342,6 +434,33 @@ export default function TalentSeekerDashboard() {
                     }
                   }}
               />
+          )}
+
+          {chatUser && (
+            <Chat
+              userId={chatUser.id}
+              userName={chatUser.name}
+              onClose={() => setChatUser(null)}
+            />
+          )}
+
+          {selectedJobDetail && (
+            <JobDetailModal
+              job={selectedJobDetail}
+              matchScore={userData ? rankJobs([selectedJobDetail], userData)[0]?.matchScore : null}
+              isBookmarked={bookmarks.includes(selectedJobDetail.id)}
+              onBookmark={() => handleBookmark(selectedJobDetail.id)}
+              applicationStatus={getApplicationStatus(selectedJobDetail.id)}
+              onApply={() => {
+                setSelectedJobDetail(null)
+                setSelectedJob(selectedJobDetail)
+              }}
+              onMessage={() => {
+                setSelectedJobDetail(null)
+                handleMessage(selectedJobDetail)
+              }}
+              onClose={() => setSelectedJobDetail(null)}
+            />
           )}
         </div>
       </div>
