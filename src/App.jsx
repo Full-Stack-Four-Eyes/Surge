@@ -13,6 +13,9 @@ import LoadingSpinner from './components/LoadingSpinner'
 function App() {
   const { user, userData, loading } = useAuth()
 
+  // Debug logging
+  console.log('App render - loading:', loading, 'user:', user, 'userData:', userData)
+
   if (loading) {
     return <LoadingSpinner />
   }
@@ -30,8 +33,10 @@ function App() {
           <ProtectedRoute>
             {userData?.role === 'finder' ? (
               <TalentFinderDashboard />
-            ) : (
+            ) : userData?.role === 'seeker' ? (
               <TalentSeekerDashboard />
+            ) : (
+              <LoadingSpinner />
             )}
           </ProtectedRoute>
         }

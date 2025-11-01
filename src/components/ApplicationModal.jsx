@@ -10,8 +10,26 @@ export default function ApplicationModal({ job, onClose, onSubmit }) {
   const [error, setError] = useState('')
 
   const handleFileChange = (e) => {
-    if (e.target.files[0]) {
-      setResume(e.target.files[0])
+    const file = e.target.files[0]
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+      const maxSize = 10 * 1024 * 1024 // 10MB
+      
+      if (!allowedTypes.includes(file.type)) {
+        setError('Please upload a PDF, DOC, or DOCX file')
+        e.target.value = ''
+        return
+      }
+      
+      if (file.size > maxSize) {
+        setError('File size must be less than 10MB')
+        e.target.value = ''
+        return
+      }
+      
+      setResume(file)
+      setError('')
     }
   }
 
@@ -24,9 +42,18 @@ export default function ApplicationModal({ job, onClose, onSubmit }) {
       let resumeUrl = ''
 
       if (resume) {
-        const resumeRef = ref(storage, `resumes/${job.id}_${Date.now()}_${resume.name}`)
-        await uploadBytes(resumeRef, resume)
-        resumeUrl = await getDownloadURL(resumeRef)
+        try {
+          // Sanitize filename to avoid issues
+          const sanitizedName = resume.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+          const resumeRef = ref(storage, `resumes/${job.id}_${Date.now()}_${sanitizedName}`)
+          await uploadBytes(resumeRef, resume)
+          resumeUrl = await getDownloadURL(resumeRef)
+        } catch (uploadError) {
+          console.error('Upload error:', uploadError)
+          setError('Failed to upload resume. Please try again or submit without a resume.')
+          setUploading(false)
+          return
+        }
       }
 
       await onSubmit({
@@ -34,8 +61,13 @@ export default function ApplicationModal({ job, onClose, onSubmit }) {
         resumeUrl,
         jobTitle: job.title
       })
+      
+      // Reset form on success
+      setMessage('')
+      setResume(null)
     } catch (err) {
-      setError(err.message || 'Failed to submit application')
+      console.error('Application submission error:', err)
+      setError(err.message || 'Failed to submit application. Please try again.')
     } finally {
       setUploading(false)
     }

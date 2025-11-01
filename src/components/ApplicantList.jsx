@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { collection, query, where, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore'
+import { collection, query, where, onSnapshot, doc, updateDoc, getDoc } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import Chat from './Chat'
 import './ApplicantList.css'
@@ -10,38 +10,42 @@ export default function ApplicantList({ job, onClose }) {
   const [chatUser, setChatUser] = useState(null)
 
   useEffect(() => {
-    fetchApplicants()
-  }, [job.id])
+    // Use real-time listener for applications
+    const q = query(
+      collection(db, 'applications'),
+      where('jobId', '==', job.id)
+    )
 
-  const fetchApplicants = async () => {
-    try {
-      const q = query(
-        collection(db, 'applications'),
-        where('jobId', '==', job.id)
-      )
-      const querySnapshot = await getDocs(q)
-      const appsData = await Promise.all(
-        querySnapshot.docs.map(async (doc) => {
-          const appData = { id: doc.id, ...doc.data() }
-          // Fetch user data for each applicant
-          try {
-            const userDoc = await getDoc(doc(db, 'users', appData.applicantId))
-            if (userDoc.exists()) {
-              appData.applicant = { id: appData.applicantId, ...userDoc.data() }
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
+      try {
+        const appsData = await Promise.all(
+          snapshot.docs.map(async (docSnapshot) => {
+            const appData = { id: docSnapshot.id, ...docSnapshot.data() }
+            // Fetch user data for each applicant
+            try {
+              const userDoc = await getDoc(doc(db, 'users', appData.applicantId))
+              if (userDoc.exists()) {
+                appData.applicant = { id: appData.applicantId, ...userDoc.data() }
+              }
+            } catch (error) {
+              console.error('Error fetching user:', error)
             }
-          } catch (error) {
-            console.error('Error fetching user:', error)
-          }
-          return appData
-        })
-      )
-      setApplicants(appsData)
-    } catch (error) {
-      console.error('Error fetching applicants:', error)
-    } finally {
+            return appData
+          })
+        )
+        setApplicants(appsData)
+        setLoading(false)
+      } catch (error) {
+        console.error('Error processing applicants:', error)
+        setLoading(false)
+      }
+    }, (error) => {
+      console.error('Error in applicants listener:', error)
       setLoading(false)
-    }
-  }
+    })
+
+    return () => unsubscribe()
+  }, [job.id])
 
   const handleUpdateStatus = async (applicationId, newStatus) => {
     try {
@@ -49,7 +53,7 @@ export default function ApplicantList({ job, onClose }) {
         status: newStatus,
         updatedAt: new Date()
       })
-      fetchApplicants()
+      // No need to fetchApplicants - real-time listener will update automatically
     } catch (error) {
       console.error('Error updating status:', error)
     }
@@ -82,22 +86,25 @@ export default function ApplicantList({ job, onClose }) {
                   )}
                 </div>
                 <div className="applicant-actions">
+                  <div className="applicant-status-section">
+                    <label className="status-label">Application Status:</label>
+                    <select
+                      value={app.status}
+                      onChange={(e) => handleUpdateStatus(app.id, e.target.value)}
+                      className="status-select"
+                    >
+                      <option value="pending">📋 Pending</option>
+                      <option value="shortlisted">⭐ Shortlisted</option>
+                      <option value="accepted">✅ Accepted</option>
+                      <option value="rejected">❌ Rejected</option>
+                    </select>
+                  </div>
                   <button
                     onClick={() => setChatUser({ id: app.applicantId, name: app.applicant?.displayName || 'User' })}
                     className="btn btn-sm btn-primary"
                   >
                     💬 Message
                   </button>
-                  <select
-                    value={app.status}
-                    onChange={(e) => handleUpdateStatus(app.id, e.target.value)}
-                    className="status-select"
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="shortlisted">Shortlisted</option>
-                    <option value="accepted">Accepted</option>
-                    <option value="rejected">Rejected</option>
-                  </select>
                 </div>
               </div>
             ))}

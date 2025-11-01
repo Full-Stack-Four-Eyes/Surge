@@ -99,12 +99,14 @@ export default function TalentSeekerDashboard() {
   const filterJobs = () => {
     let filtered = [...jobs]
 
-    // Search filter
+    // Search filter - enhanced to search title, description, skills, and tags
     if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase()
       filtered = filtered.filter(job =>
-          job.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          job.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          job.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+          job.title?.toLowerCase().includes(searchLower) ||
+          job.description?.toLowerCase().includes(searchLower) ||
+          job.tags?.some(tag => tag.toLowerCase().includes(searchLower)) ||
+          job.requiredSkills?.some(skill => skill.toLowerCase().includes(searchLower))
       )
     }
 
@@ -113,9 +115,14 @@ export default function TalentSeekerDashboard() {
       filtered = filtered.filter(job => job.type === filterType)
     }
 
-    // Rank by match score
+    // Rank by match score with user behavior learning
     if (userData) {
-      filtered = rankJobs(filtered, userData)
+      const userBehavior = {
+        appliedJobs: applications.map(app => app.jobId),
+        viewedJobs: viewedJobs,
+        bookmarkedJobs: bookmarks
+      }
+      filtered = rankJobs(filtered, userData, userBehavior)
     }
 
     setFilteredJobs(filtered)
@@ -223,7 +230,15 @@ export default function TalentSeekerDashboard() {
     )
   }
 
-  const recommendedJobs = userData ? rankJobs(jobs, userData).slice(0, 5) : []
+  const recommendedJobs = userData ? rankJobs(
+    jobs, 
+    userData,
+    {
+      appliedJobs: applications.map(app => app.jobId),
+      viewedJobs: viewedJobs,
+      bookmarkedJobs: bookmarks
+    }
+  ).slice(0, 5) : []
 
   return (
       <div className="dashboard">
@@ -297,7 +312,11 @@ export default function TalentSeekerDashboard() {
                               key={job.id}
                               job={job}
                               isFinder={false}
-                              matchScore={userData ? rankJobs([job], userData)[0]?.matchScore : null}
+                              matchScore={userData ? rankJobs([job], userData, {
+                                appliedJobs: applications.map(app => app.jobId),
+                                viewedJobs: viewedJobs,
+                                bookmarkedJobs: bookmarks
+                              })[0]?.matchScore : null}
                               isBookmarked={bookmarks.includes(job.id)}
                               onBookmark={() => handleBookmark(job.id)}
                               applicationStatus={getApplicationStatus(job.id)}
@@ -367,7 +386,10 @@ export default function TalentSeekerDashboard() {
                                 applicationStatus={app.status}
                                 applicationDate={app.createdAt}
                                 onMessage={() => handleMessage(job)}
-                                onViewDetails={() => setSelectedJobDetail(job)}
+                                onViewDetails={() => {
+                                handleViewJob(job.id)
+                                setSelectedJobDetail(job)
+                              }}
                                 onBookmark={() => handleBookmark(job.id)}
                                 isBookmarked={bookmarks.includes(job.id)}
                             />
@@ -395,13 +417,20 @@ export default function TalentSeekerDashboard() {
                                 key={job.id}
                                 job={job}
                                 isFinder={false}
-                                matchScore={userData ? rankJobs([job], userData)[0]?.matchScore : null}
+                                matchScore={userData ? rankJobs([job], userData, {
+                                appliedJobs: applications.map(app => app.jobId),
+                                viewedJobs: viewedJobs,
+                                bookmarkedJobs: bookmarks
+                              })[0]?.matchScore : null}
                                 isBookmarked={true}
                                 onBookmark={() => handleBookmark(job.id)}
                                 applicationStatus={getApplicationStatus(job.id)}
                                 onApply={() => setSelectedJob(job)}
                                 onMessage={() => handleMessage(job)}
-                                onViewDetails={() => setSelectedJobDetail(job)}
+                                onViewDetails={() => {
+                                handleViewJob(job.id)
+                                setSelectedJobDetail(job)
+                              }}
                             />
                           ))
                   )}
@@ -447,7 +476,11 @@ export default function TalentSeekerDashboard() {
           {selectedJobDetail && (
             <JobDetailModal
               job={selectedJobDetail}
-              matchScore={userData ? rankJobs([selectedJobDetail], userData)[0]?.matchScore : null}
+              matchScore={userData ? rankJobs([selectedJobDetail], userData, {
+                appliedJobs: applications.map(app => app.jobId),
+                viewedJobs: viewedJobs,
+                bookmarkedJobs: bookmarks
+              })[0]?.matchScore : null}
               isBookmarked={bookmarks.includes(selectedJobDetail.id)}
               onBookmark={() => handleBookmark(selectedJobDetail.id)}
               applicationStatus={getApplicationStatus(selectedJobDetail.id)}
@@ -459,6 +492,7 @@ export default function TalentSeekerDashboard() {
                 setSelectedJobDetail(null)
                 handleMessage(selectedJobDetail)
               }}
+              onViewJob={handleViewJob}
               onClose={() => setSelectedJobDetail(null)}
             />
           )}

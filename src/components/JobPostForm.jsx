@@ -1,4 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
+import { db } from '../config/firebase'
+import { useAuth } from '../hooks/useAuth.jsx'
 import './JobPostForm.css'
 
 const JOB_TYPES = [
@@ -9,7 +12,8 @@ const JOB_TYPES = [
   'Team Search'
 ]
 
-export default function JobPostForm({ job, onSubmit, onCancel }) {
+export default function JobPostForm({ job, onSubmit, onCancel, onSaveDraft }) {
+  const { user } = useAuth()
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -23,6 +27,8 @@ export default function JobPostForm({ job, onSubmit, onCancel }) {
   })
   const [skillInput, setSkillInput] = useState('')
   const [tagInput, setTagInput] = useState('')
+  const [autoSaveStatus, setAutoSaveStatus] = useState('')
+  const autoSaveTimerRef = useRef(null)
 
   useEffect(() => {
     if (job) {
@@ -41,11 +47,49 @@ export default function JobPostForm({ job, onSubmit, onCancel }) {
   }, [job])
 
   const handleChange = (e) => {
-    setFormData({
+    const newFormData = {
       ...formData,
       [e.target.name]: e.target.value
-    })
+    }
+    setFormData(newFormData)
+    
+    // Auto-save draft if user has entered some content
+    if (newFormData.title || newFormData.description) {
+      clearTimeout(autoSaveTimerRef.current)
+      autoSaveTimerRef.current = setTimeout(() => {
+        handleAutoSave(newFormData)
+      }, 2000) // Auto-save after 2 seconds of inactivity
+    }
   }
+
+  const handleAutoSave = async (dataToSave) => {
+    if (!user || job) return // Don't auto-save if editing existing job
+    
+    try {
+      const draftData = {
+        ...dataToSave,
+        status: 'draft',
+        postedBy: user.uid,
+        updatedAt: serverTimestamp()
+      }
+      
+      // Save to drafts subcollection or use a draftId
+      const draftId = `draft_${Date.now()}`
+      await setDoc(doc(db, 'jobDrafts', draftId), draftData)
+      
+      setAutoSaveStatus('Draft saved')
+      setTimeout(() => setAutoSaveStatus(''), 3000)
+    } catch (error) {
+      console.error('Error auto-saving draft:', error)
+      setAutoSaveStatus('Failed to save draft')
+    }
+  }
+
+  useEffect(() => {
+    return () => {
+      clearTimeout(autoSaveTimerRef.current)
+    }
+  }, [])
 
   const handleAddSkill = () => {
     if (skillInput.trim() && !formData.requiredSkills.includes(skillInput.trim())) {
@@ -236,12 +280,32 @@ export default function JobPostForm({ job, onSubmit, onCancel }) {
           </div>
 
           <div className="form-actions">
-            <button type="button" onClick={onCancel} className="btn btn-secondary">
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary">
-              {job ? 'Update' : 'Create'} Job Post
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
+              {!job && autoSaveStatus && (
+                <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                  {autoSaveStatus}
+                </span>
+              )}
+              {!job && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onSubmit({ ...formData, status: 'draft' })
+                  }}
+                  className="btn btn-secondary"
+                >
+                  Save as Draft
+                </button>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button type="button" onClick={onCancel} className="btn btn-secondary">
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-primary">
+                {job ? 'Update' : formData.status === 'draft' ? 'Publish' : 'Publish Job'}
+              </button>
+            </div>
           </div>
         </form>
       </div>

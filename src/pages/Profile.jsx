@@ -3,6 +3,7 @@ import { doc, updateDoc, getDoc } from 'firebase/firestore'
 import { updateProfile } from 'firebase/auth'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { db } from '../config/firebase'
+import { calculateProfileScore } from '../utils/profileScore'
 import Navbar from '../components/Navbar'
 import './Profile.css'
 
@@ -21,6 +22,7 @@ export default function Profile() {
   const [interestInput, setInterestInput] = useState('')
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
+  const [profileScore, setProfileScore] = useState(null)
 
   useEffect(() => {
     if (userData) {
@@ -40,6 +42,10 @@ export default function Profile() {
         experienceLevel: userData.experienceLevel || 'beginner',
         preferredJobTypes: userData.preferredJobTypes || []
       })
+      
+      // Calculate profile score
+      const score = calculateProfileScore(userData)
+      setProfileScore(score)
     } else if (user) {
       // If user exists but userData hasn't loaded yet, use email for default name
       const emailPart = user.email?.split('@')[0] || 'User'
@@ -50,6 +56,15 @@ export default function Profile() {
       }))
     }
   }, [userData, user])
+
+  // Recalculate profile score when form data changes
+  useEffect(() => {
+    if (userData) {
+      const updatedUserData = { ...userData, ...formData }
+      const score = calculateProfileScore(updatedUserData)
+      setProfileScore(score)
+    }
+  }, [formData])
 
   const handleChange = (e) => {
     setFormData({
@@ -149,6 +164,41 @@ export default function Profile() {
       <div className="profile-container">
         <div className="profile-card">
           <h1>Edit Profile</h1>
+
+          {profileScore && (
+            <div className="profile-score-card" style={{
+              marginBottom: '1.5rem',
+              padding: '1.5rem',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              borderRadius: 'var(--border-radius-lg)',
+              color: 'white',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1.5rem',
+              boxShadow: 'var(--shadow-lg)'
+            }}>
+              <div style={{ fontSize: '3rem', fontWeight: 'bold' }}>
+                {profileScore.score}%
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>
+                  Profile Score: {profileScore.qualityTier}
+                </div>
+                <div style={{ fontSize: '0.875rem', opacity: 0.9 }}>
+                  {profileScore.suggestions.length > 0 && (
+                    <div>
+                      <strong>Tips to improve:</strong>
+                      <ul style={{ marginTop: '0.5rem', paddingLeft: '1.25rem' }}>
+                        {profileScore.suggestions.slice(0, 3).map((suggestion, idx) => (
+                          <li key={idx} style={{ marginTop: '0.25rem' }}>{suggestion}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {message && (
             <div className={message.includes('Error') ? 'error-message' : 'success-message'}>

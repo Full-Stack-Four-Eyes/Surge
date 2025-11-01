@@ -46,8 +46,23 @@
 
 .applicant-actions {
   display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: flex-end;
+  min-width: 180px;
+}
+
+.applicant-status-section {
+  display: flex;
+  flex-direction: column;
   gap: 0.5rem;
-  align-items: center;
+  width: 100%;
+}
+
+.status-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .btn-sm {

@@ -93,6 +93,12 @@ export const AuthProvider = ({ children }) => {
           }
         } catch (error) {
           console.error('Error in auth state change handler:', error)
+          if (mounted) {
+            setUser(null)
+            setUserData(null)
+            clearTimeout(timeoutId)
+            setLoading(false)
+          }
         } finally {
           if (mounted) {
             clearTimeout(timeoutId)

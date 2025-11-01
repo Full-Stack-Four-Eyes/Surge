@@ -15,38 +15,84 @@ export default function Chat({ userId, userName, onClose }) {
   const chatId = [user.uid, userId].sort().join('_')
 
   useEffect(() => {
-    const q = query(
-      collection(db, 'chats', chatId, 'messages'),
-      orderBy('createdAt', 'asc')
-    )
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const msgs = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }))
-      setMessages(msgs)
+    if (!user || !userId) {
       setLoading(false)
+      return () => {}
+    }
+
+    let unsubscribe = null
+
+    // Ensure chat document exists first
+    const ensureChatExists = async () => {
+      const chatDocRef = doc(db, 'chats', chatId)
+      const chatDoc = await getDoc(chatDocRef)
       
-      // Mark messages as read
-      msgs.forEach(msg => {
-        if (msg.senderId !== user.uid && !msg.read) {
-          updateDoc(doc(db, 'chats', chatId, 'messages', msg.id), {
-            read: true
+      if (!chatDoc.exists()) {
+        // Create chat document if it doesn't exist
+        await setDoc(chatDocRef, {
+          participants: [user.uid, userId],
+          lastMessage: '',
+          lastMessageTime: serverTimestamp(),
+          unread: { [user.uid]: 0, [userId]: 0 }
+        })
+      }
+    }
+
+    ensureChatExists().then(() => {
+      // Now set up messages listener
+      const q = query(
+        collection(db, 'chats', chatId, 'messages'),
+        orderBy('createdAt', 'asc')
+      )
+
+      unsubscribe = onSnapshot(
+        q,
+        (snapshot) => {
+          const msgs = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }))
+          setMessages(msgs)
+          setLoading(false)
+          
+          // Mark messages as read
+          msgs.forEach(msg => {
+            if (msg.senderId !== user.uid && !msg.read) {
+              updateDoc(doc(db, 'chats', chatId, 'messages', msg.id), {
+                read: true
+              }).catch(err => console.error('Error marking message as read:', err))
+            }
           })
+        },
+        (error) => {
+          console.error('Chat listener error:', error)
+          // If collection doesn't exist, just set empty messages
+          if (error.code === 'failed-precondition' || error.code === 'permission-denied') {
+            setMessages([])
+            setLoading(false)
+          } else {
+            setLoading(false)
+          }
         }
+      )
+
+      // Mark chat as read
+      updateDoc(doc(db, 'chats', chatId), {
+        [`unread.${user.uid}`]: 0
+      }).catch(() => {
+        // Chat document might not exist yet, that's okay
       })
+    }).catch(error => {
+      console.error('Error ensuring chat exists:', error)
+      setLoading(false)
     })
 
-    // Mark chat as read
-    updateDoc(doc(db, 'chats', chatId), {
-      [`unread.${user.uid}`]: 0
-    }).catch(() => {
-      // Chat document might not exist yet, that's okay
-    })
-
-    return unsubscribe
-  }, [chatId, user.uid])
+    return () => {
+      if (unsubscribe) {
+        unsubscribe()
+      }
+    }
+  }, [chatId, user?.uid, userId])
 
   useEffect(() => {
     scrollToBottom()

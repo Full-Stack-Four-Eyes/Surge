@@ -40,6 +40,12 @@
   font-size: 0.875rem;
 }
 
+.stat-desc {
+  color: var(--text-tertiary);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
 .top-jobs {
   background: white;
   border-radius: 1rem;
