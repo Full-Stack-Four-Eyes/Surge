@@ -59,22 +59,24 @@ export default function JobCard({
         )}
       </div>
 
-      <p className="job-description">{job.description?.substring(0, 150)}...</p>
+      <div className="job-card-content">
+        <p className="job-description">{job.description?.substring(0, 150)}...</p>
 
-      {job.tags && job.tags.length > 0 && (
-        <div className="job-tags">
-          {job.tags.slice(0, 3).map((tag, idx) => (
-            <span key={idx} className="tag">{tag}</span>
-          ))}
-        </div>
-      )}
+        {job.tags && job.tags.length > 0 && (
+          <div className="job-tags">
+            {job.tags.slice(0, 3).map((tag, idx) => (
+              <span key={idx} className="tag">{tag}</span>
+            ))}
+          </div>
+        )}
 
-      {job.requiredSkills && job.requiredSkills.length > 0 && (
-        <div className="job-skills">
-          <strong>Skills:</strong> {job.requiredSkills.slice(0, 3).join(', ')}
-          {job.requiredSkills.length > 3 && ` +${job.requiredSkills.length - 3} more`}
-        </div>
-      )}
+        {job.requiredSkills && job.requiredSkills.length > 0 && (
+          <div className="job-skills">
+            <strong>Skills:</strong> {job.requiredSkills.slice(0, 3).join(', ')}
+            {job.requiredSkills.length > 3 && ` +${job.requiredSkills.length - 3} more`}
+          </div>
+        )}
+      </div>
 
       <div className="job-card-footer">
         <div className="job-stats">

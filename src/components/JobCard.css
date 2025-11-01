@@ -9,6 +9,9 @@
   overflow: hidden;
   min-width: 0;
   word-wrap: break-word;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .dark-mode .job-card {
@@ -143,6 +146,13 @@
   opacity: 0.9;
 }
 
+.job-card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .job-description {
   color: var(--text-secondary);
   margin-bottom: 1rem;
@@ -193,7 +203,7 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-top: 1rem;
+  margin-top: auto;
   padding-top: 1rem;
   border-top: 1px solid var(--border-color);
   gap: 1rem;
