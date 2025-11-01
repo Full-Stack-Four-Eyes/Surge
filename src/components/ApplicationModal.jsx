@@ -38,6 +38,13 @@ export default function ApplicationModal({ job, onClose, onSubmit }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    
+    // Check email verification
+    if (user && !user.emailVerified) {
+      setError('Please verify your email address before applying for jobs. Check your email inbox for the verification link.')
+      return
+    }
+    
     setUploading(true)
 
     try {

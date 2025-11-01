@@ -127,6 +127,13 @@ export default function JobPostForm({ job, onSubmit, onCancel, onSaveDraft }) {
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    
+    // Check email verification
+    if (user && !user.emailVerified) {
+      alert('Please verify your email address before posting jobs. Check your email inbox for the verification link.')
+      return
+    }
+    
     onSubmit(formData)
   }
 

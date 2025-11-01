@@ -1,51 +1,284 @@
+import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import './LandingPage.css'
 
 export default function LandingPage() {
+  const [currentSlide, setCurrentSlide] = useState(0)
+  const sliderRef = useRef(null)
+  const autoScrollRef = useRef(null)
+  const isManualScroll = useRef(false)
+
+  const features = [
+    {
+      id: 1,
+      icon: '🔁',
+      title: 'Dual Role System',
+      description: 'Switch between Talent Finder and Seeker anytime.'
+    },
+    {
+      id: 2,
+      icon: '🎯',
+      title: 'Smart Match Score',
+      description: 'Instantly know how well your skills fit each post.'
+    },
+    {
+      id: 3,
+      icon: '💬',
+      title: 'Real-time Chat',
+      description: 'Collaborate instantly without leaving the platform.'
+    },
+    {
+      id: 4,
+      icon: '🗂️',
+      title: 'Application Tracking',
+      description: 'See every stage of your applied opportunities.'
+    },
+    {
+      id: 5,
+      icon: '🧑‍💻',
+      title: 'Profile Builder',
+      description: 'Showcase your skills, projects, and resume in one place.'
+    },
+    {
+      id: 6,
+      icon: '📊',
+      title: 'Post Analytics',
+      description: 'Track views, applicants, and engagement stats.'
+    }
+  ]
+
+
+  // Calculate slide width
+  const getSlideWidth = () => {
+    if (sliderRef.current && sliderRef.current.children.length > 0) {
+      const slide = sliderRef.current.children[0]
+      const style = window.getComputedStyle(slide)
+      const margin = parseFloat(style.marginRight) || 0
+      return slide.offsetWidth + margin
+    }
+    return 350 + 32
+  }
+
+  // Auto-scroll functionality
+  useEffect(() => {
+    const startAutoScroll = () => {
+      autoScrollRef.current = setInterval(() => {
+        if (sliderRef.current && !isManualScroll.current) {
+          const nextSlide = (currentSlide + 1) % features.length
+          scrollToSlide(nextSlide, false)
+        }
+      }, 3000)
+    }
+
+    startAutoScroll()
+
+    return () => {
+      if (autoScrollRef.current) {
+        clearInterval(autoScrollRef.current)
+      }
+    }
+  }, [currentSlide, features.length])
+
+  const scrollToSlide = (index, isManual = true) => {
+    if (sliderRef.current) {
+      // Ensure index is within bounds
+      const safeIndex = Math.max(0, Math.min(index, features.length - 1))
+      const slideWidth = getSlideWidth()
+      
+      // Calculate target scroll position
+      let targetScroll = safeIndex * slideWidth
+      
+      // Get container dimensions
+      const containerWidth = sliderRef.current.clientWidth
+      const totalWidth = sliderRef.current.scrollWidth
+      const maxScroll = totalWidth - containerWidth
+      
+      // Ensure we don't scroll past the maximum
+      targetScroll = Math.min(targetScroll, maxScroll)
+      
+      // Ensure we don't scroll to negative values
+      targetScroll = Math.max(0, targetScroll)
+      
+      sliderRef.current.scrollTo({
+        left: targetScroll,
+        behavior: 'smooth'
+      })
+      
+      setCurrentSlide(safeIndex)
+
+      if (isManual) {
+        resetAutoScroll()
+      }
+    }
+  }
+
+  const nextSlide = () => {
+    if (currentSlide < features.length - 1) {
+      scrollToSlide(currentSlide + 1, true)
+    } else {
+      // Loop back to start
+      scrollToSlide(0, true)
+    }
+  }
+
+  const prevSlide = () => {
+    if (currentSlide > 0) {
+      scrollToSlide(currentSlide - 1, true)
+    } else {
+      // Loop to end
+      scrollToSlide(features.length - 1, true)
+    }
+  }
+
+  const resetAutoScroll = () => {
+    isManualScroll.current = true
+
+    if (autoScrollRef.current) {
+      clearInterval(autoScrollRef.current)
+    }
+
+    setTimeout(() => {
+      isManualScroll.current = false
+      autoScrollRef.current = setInterval(() => {
+        if (sliderRef.current && !isManualScroll.current) {
+          const next = (currentSlide + 1) % features.length
+          scrollToSlide(next, false)
+        }
+      }, 3000)
+    }, 5000)
+  }
+
+  const handleScroll = () => {
+    if (sliderRef.current && !isManualScroll.current) {
+      const slideWidth = getSlideWidth()
+      const scrollPosition = sliderRef.current.scrollLeft
+      const newSlide = Math.round(scrollPosition / slideWidth) % features.length
+      setCurrentSlide(newSlide)
+    }
+  }
+
+  const handleManualScrollStart = () => {
+    isManualScroll.current = true
+    resetAutoScroll()
+  }
+
   return (
     <div className="landing-page">
       <Navbar />
       
-      <section className="hero">
+      {/* Hero Section - Integrated Custom Design */}
+      <section className="hero hero-custom">
         <div className="hero-background"></div>
-        <div className="hero-content">
-          <div className="hero-badge">
-            🎓 Trusted by 1000+ Students
-          </div>
-          <h1 className="hero-title">
-            Connect. Collaborate. <span className="gradient-text">Succeed.</span>
-          </h1>
-          <p className="hero-subtitle">
-            CampusConnect is your gateway to discovering talent and opportunities on campus.
-            Whether you're looking for collaborators, job opportunities, or team members for your next big project.
-          </p>
-          <div className="hero-buttons">
-            <Link to="/signup" className="btn btn-primary btn-large">
-              Get Started Free
-            </Link>
-            <Link to="/login" className="btn btn-secondary btn-large">
-              Login
-            </Link>
-          </div>
-          <div className="hero-stats">
-            <div className="stat-item">
-              <div className="stat-number">1,000+</div>
-              <div className="stat-label">Active Users</div>
+        <div className="hero-container">
+          <div className="hero-content">
+            <h1 className="hero-title">
+              Connect, Collaborate &
+              <span className="highlight"> Thrive</span> on Campus
+            </h1>
+            <p className="hero-subtitle">
+              Your all-in-one platform for campus life — connect with peers, discover events,
+              join clubs, and make the most of your university experience.
+            </p>
+            <div className="hero-buttons">
+              <Link to="/signup" className="hero-btn primary">
+                Get Started
+              </Link>
+              <Link to="/about" className="hero-btn secondary">
+                Learn More
+              </Link>
             </div>
-            <div className="stat-item">
-              <div className="stat-number">500+</div>
-              <div className="stat-label">Opportunities</div>
+            <div className="hero-stats">
+              <div className="stat">
+                <span className="stat-number">10K+</span>
+                <span className="stat-label">Students Connected</span>
+              </div>
+              <div className="stat">
+                <span className="stat-number">500+</span>
+                <span className="stat-label">Opportunities</span>
+              </div>
+              <div className="stat">
+                <span className="stat-number">50+</span>
+                <span className="stat-label">Campuses</span>
+              </div>
             </div>
-            <div className="stat-item">
-              <div className="stat-number">95%</div>
-              <div className="stat-label">Success Rate</div>
+          </div>
+          <div className="hero-visual">
+            <div className="main-illustration">
+              <div className="logo-container">
+                <img src="/hero-logo.png" alt="CampusConnect Logo" className="hero-logo" onError={(e) => { e.target.src = '/favicon.ico'; }} />
+              </div>
+              <div className="floating-card card-1">💼 Opportunities</div>
+              <div className="floating-card card-2">🎯 Match Score</div>
+              <div className="floating-card card-3">📊 Analytics</div>
+              <div className="floating-card card-4">💬 Messaging</div>
             </div>
           </div>
         </div>
       </section>
 
+      {/* Features Slider Section */}
+      <section id="features" className="features-section">
+        <div className="features-container">
+          <div className="features-header">
+            <h2 className="features-title">Platform Features</h2>
+            <p className="features-subtitle">
+              Everything you need to connect, collaborate, and thrive on campus
+            </p>
+          </div>
+
+          <div className="features-controls">
+            <button
+              className="nav-btn prev-btn"
+              onClick={prevSlide}
+              aria-label="Previous feature"
+            >
+              ←
+            </button>
+
+            <div className="slide-indicators">
+              {features.map((_, index) => (
+                <button
+                  key={index}
+                  className={`indicator ${currentSlide === index ? 'active' : ''}`}
+                  onClick={() => scrollToSlide(index, true)}
+                  aria-label={`Go to feature ${index + 1}`}
+                />
+              ))}
+            </div>
+
+            <button
+              className="nav-btn next-btn"
+              onClick={nextSlide}
+              aria-label="Next feature"
+            >
+              →
+            </button>
+          </div>
+
+          <div className="features-slider-container">
+            <div
+              className="features-slider"
+              ref={sliderRef}
+              onScroll={handleScroll}
+              onTouchStart={handleManualScrollStart}
+              onMouseDown={handleManualScrollStart}
+              onWheel={handleManualScrollStart}
+            >
+              {features.map((feature) => (
+                <div key={feature.id} className="feature-card-slider">
+                  <div className="feature-icon">{feature.icon}</div>
+                  <h3 className="feature-title">{feature.title}</h3>
+                  <p className="feature-description">{feature.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Existing Stats Section */}
       <section className="stats-section">
         <div className="container">
           <div className="stats-grid">
@@ -73,47 +306,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="features">
-        <div className="container">
-          <h2 className="section-title">Why CampusConnect?</h2>
-          <p className="section-subtitle">
-            Everything you need to connect, collaborate, and succeed - all in one platform.
-          </p>
-          <div className="features-grid">
-            <div className="feature-card">
-              <div className="feature-icon">🎯</div>
-              <h3>Talent Discovery</h3>
-              <p>Find the perfect match for your projects with our intelligent matching system that learns from your preferences.</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon">💼</div>
-              <h3>Opportunity Hub</h3>
-              <p>Browse through part-time jobs, startup gigs, academic projects, and competitions all in one place.</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon">🤝</div>
-              <h3>Collaboration</h3>
-              <p>Connect with students across campus for meaningful collaborations and team building.</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon">📊</div>
-              <h3>Analytics</h3>
-              <p>Track your applications and manage opportunities with powerful analytics and insights.</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon">💬</div>
-              <h3>Real-time Chat</h3>
-              <p>Communicate instantly with potential collaborators or employers through our built-in messaging system.</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon">⭐</div>
-              <h3>Match Score</h3>
-              <p>Get personalized match scores to find the best opportunities tailored to your skills and interests.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
+      {/* Existing Testimonials */}
       <section className="testimonials">
         <div className="container">
           <h2 className="section-title">What Students Say</h2>
@@ -167,6 +360,7 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* CTA Section */}
       <section className="cta">
         <div className="container">
           <h2>Ready to get started?</h2>
@@ -186,4 +380,3 @@ export default function LandingPage() {
     </div>
   )
 }
-

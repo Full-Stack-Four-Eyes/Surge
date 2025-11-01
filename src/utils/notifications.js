@@ -32,8 +32,19 @@ export async function notifyApplicationStatusChange(applicationId, applicantId, 
  */
 export async function notifyNewApplication(applicationId, jobPosterId, jobId, applicantName, jobTitle) {
   try {
-    console.log('Creating notification for job poster:', { applicationId, jobPosterId, jobId, applicantName, jobTitle })
-    const notificationRef = await addDoc(collection(db, 'notifications'), {
+    console.log('Creating notification for job poster:', { 
+      applicationId, 
+      jobPosterId, 
+      jobId, 
+      applicantName, 
+      jobTitle 
+    })
+    
+    if (!jobPosterId) {
+      throw new Error('jobPosterId is required to create notification')
+    }
+    
+    const notificationData = {
       userId: jobPosterId,
       type: 'new_application',
       message: `${applicantName} applied to your job "${jobTitle}"`,
@@ -41,11 +52,22 @@ export async function notifyNewApplication(applicationId, jobPosterId, jobId, ap
       jobId,
       read: false,
       createdAt: serverTimestamp()
-    })
-    console.log('Notification created successfully:', notificationRef.id)
+    }
+    
+    console.log('Notification data to be created:', notificationData)
+    
+    const notificationRef = await addDoc(collection(db, 'notifications'), notificationData)
+    console.log('Notification created successfully with ID:', notificationRef.id)
+    console.log('Notification userId:', jobPosterId)
+    
     return notificationRef.id
   } catch (error) {
     console.error('Error creating new application notification:', error)
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack
+    })
     throw error // Re-throw to allow caller to handle
   }
 }

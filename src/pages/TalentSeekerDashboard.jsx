@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import {
   collection,
   query,
@@ -26,6 +27,7 @@ import './Dashboard.css'
 
 export default function TalentSeekerDashboard() {
   const { user, userData } = useAuth()
+  const location = useLocation()
   const [jobs, setJobs] = useState([])
   const [filteredJobs, setFilteredJobs] = useState([])
   const [loading, setLoading] = useState(true)
@@ -38,6 +40,34 @@ export default function TalentSeekerDashboard() {
   const [chatUser, setChatUser] = useState(null)
   const [selectedJobDetail, setSelectedJobDetail] = useState(null)
   const [viewedJobs, setViewedJobs] = useState([])
+  const [highlightApplicationId, setHighlightApplicationId] = useState(null)
+
+  // Handle navigation from notifications
+  useEffect(() => {
+    if (location.state) {
+      if (location.state.activeTab) {
+        setActiveTab(location.state.activeTab)
+      }
+      if (location.state.highlightApplicationId) {
+        setHighlightApplicationId(location.state.highlightApplicationId)
+        // Scroll to the application after a short delay
+        setTimeout(() => {
+          const element = document.querySelector(`[data-application-id="${location.state.highlightApplicationId}"]`)
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            // Add highlight effect
+            element.style.transition = 'background-color 0.3s ease'
+            element.style.backgroundColor = 'var(--primary-light)'
+            setTimeout(() => {
+              element.style.backgroundColor = ''
+            }, 2000)
+          }
+        }, 500)
+      }
+      // Clear the state after handling
+      window.history.replaceState({}, document.title)
+    }
+  }, [location.state])
 
   useEffect(() => {
     if (user) {
@@ -63,7 +93,11 @@ export default function TalentSeekerDashboard() {
       }))
 
       // manual filtering instead of Firestore index
-      jobsData = jobsData.filter(job => job.status === 'published' && job.isFilled === false)
+      jobsData = jobsData.filter(job => 
+        job.status === 'published' && 
+        job.isFilled === false &&
+        !job.archived // Exclude archived jobs
+      )
 
       setJobs(jobsData)
     } catch (error) {
@@ -264,12 +298,18 @@ export default function TalentSeekerDashboard() {
             >
               Recommended ({recommendedJobs.length})
             </button>
-            <button
-                className={activeTab === 'applications' ? 'tab active' : 'tab'}
-                onClick={() => setActiveTab('applications')}
-            >
-              My Applications ({applications.length})
-            </button>
+                <button
+                    className={activeTab === 'applications' ? 'tab active' : 'tab'}
+                    onClick={() => setActiveTab('applications')}
+                >
+                    My Applications ({applications.length})
+                </button>
+                <button
+                    className={activeTab === 'accepted' ? 'tab active' : 'tab'}
+                    onClick={() => setActiveTab('accepted')}
+                >
+                    Accepted ({applications.filter(app => app.status === 'accepted').length})
+                </button>
             <button
                 className={activeTab === 'bookmarks' ? 'tab active' : 'tab'}
                 onClick={() => setActiveTab('bookmarks')}
@@ -365,6 +405,71 @@ export default function TalentSeekerDashboard() {
               </div>
           )}
 
+          {/* Accepted Applications */}
+          {activeTab === 'accepted' && (
+              <div className="dashboard-content">
+                <h2>Accepted Applications</h2>
+                <p className="applications-subtitle">Congratulations! View all jobs where your application has been accepted.</p>
+                <div className="jobs-grid">
+                  {applications.filter(app => app.status === 'accepted').length === 0 ? (
+                      <div className="empty-state">
+                          <p>No accepted applications yet. Keep applying!</p>
+                      </div>
+                  ) : (
+                      applications
+                          .filter(app => app.status === 'accepted')
+                          .map(app => {
+                              // Try to find job in current jobs list first
+                              let job = jobs.find(j => j.id === app.jobId)
+                              
+                              // If job not found, use preserved job data from application
+                              if (!job && app.jobData) {
+                                  job = {
+                                      id: app.jobId,
+                                      ...app.jobData,
+                                      isDeleted: true
+                                  }
+                              }
+                              
+                              if (!job) return null
+                              
+                              return (
+                                  <div
+                                    key={app.id}
+                                    data-application-id={app.id}
+                                    style={{ 
+                                      opacity: highlightApplicationId === app.id ? 1 : 1,
+                                      transition: 'opacity 0.3s ease'
+                                    }}
+                                  >
+                                    <JobCard
+                                      job={job}
+                                      isFinder={false}
+                                      applicationStatus={app.status}
+                                      applicationDate={app.createdAt}
+                                      onMessage={() => {
+                                        if (job.postedBy) {
+                                          handleMessage(job)
+                                        }
+                                      }}
+                                      onViewDetails={() => {
+                                        setSelectedJobDetail(job)
+                                      }}
+                                      onBookmark={() => {
+                                        if (!job.isDeleted) {
+                                          handleBookmark(job.id)
+                                        }
+                                      }}
+                                      isBookmarked={!job.isDeleted && bookmarks.includes(job.id)}
+                                    />
+                                  </div>
+                              )
+                          })
+                  )}
+                </div>
+              </div>
+          )}
+
           {/* Applications */}
           {activeTab === 'applications' && (
               <div className="dashboard-content">
@@ -392,8 +497,15 @@ export default function TalentSeekerDashboard() {
                         if (!job) return null
                         
                         return (
-                            <JobCard
-                                key={app.id}
+                            <div
+                              key={app.id}
+                              data-application-id={app.id}
+                              style={{ 
+                                opacity: highlightApplicationId === app.id ? 1 : 1,
+                                transition: 'opacity 0.3s ease'
+                              }}
+                            >
+                              <JobCard
                                 job={job}
                                 isFinder={false}
                                 applicationStatus={app.status}
@@ -412,7 +524,8 @@ export default function TalentSeekerDashboard() {
                                   }
                                 }}
                                 isBookmarked={!job.isDeleted && bookmarks.includes(job.id)}
-                            />
+                              />
+                            </div>
                         )
                       })
                   )}

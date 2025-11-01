@@ -14,7 +14,8 @@ export default function JobCard({
   onApply,
   onMessage,
   onViewDetails,
-  applicationDate
+  applicationDate,
+  isArchived
 }) {
   const getStatusBadge = () => {
     if (job.isFilled) {
@@ -40,7 +41,7 @@ export default function JobCard({
 
   return (
     <div 
-      className={`job-card ${isClickable ? 'clickable' : ''} ${job.isDeleted ? 'job-deleted' : ''}`}
+      className={`job-card ${isClickable ? 'clickable' : ''} ${job.isDeleted ? 'job-deleted' : ''} ${isArchived ? 'job-archived' : ''}`}
       onClick={isClickable ? onViewDetails : undefined}
     >
       <div className="job-card-header">
@@ -49,6 +50,11 @@ export default function JobCard({
           {job.isDeleted && (
             <span className="badge badge-warning" style={{ fontSize: '0.75rem', marginTop: '0.25rem', display: 'inline-block' }}>
               Job No Longer Available
+            </span>
+          )}
+          {isArchived && (
+            <span className="badge badge-secondary" style={{ fontSize: '0.75rem', marginTop: '0.25rem', display: 'inline-block' }}>
+              Archived
             </span>
           )}
           <div className="job-meta">
@@ -107,17 +113,21 @@ export default function JobCard({
               <button onClick={onViewApplicants} className="btn btn-sm btn-primary">
                 View Applicants ({job.applications || 0})
               </button>
-              <button onClick={onEdit} className="btn btn-sm btn-secondary">
-                Edit
-              </button>
-              {!job.isFilled && (
-                <button onClick={onMarkFilled} className="btn btn-sm btn-success">
-                  Mark Filled
-                </button>
+              {!isArchived && (
+                <>
+                  <button onClick={onEdit} className="btn btn-sm btn-secondary">
+                    Edit
+                  </button>
+                  {!job.isFilled && (
+                    <button onClick={onMarkFilled} className="btn btn-sm btn-success">
+                      Mark Filled
+                    </button>
+                  )}
+                  <button onClick={onDelete} className="btn btn-sm btn-danger">
+                    Delete
+                  </button>
+                </>
               )}
-              <button onClick={onDelete} className="btn btn-sm btn-danger">
-                Delete
-              </button>
             </>
           ) : (
             <>

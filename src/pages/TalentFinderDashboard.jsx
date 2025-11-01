@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import { collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp, addDoc, deleteDoc, getDocs } from 'firebase/firestore'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { db } from '../config/firebase'
@@ -13,6 +14,7 @@ import './Dashboard.css'
 
 export default function TalentFinderDashboard() {
   const { user, userData } = useAuth()
+  const location = useLocation()
   const [jobs, setJobs] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('posts')
@@ -21,9 +23,28 @@ export default function TalentFinderDashboard() {
   const [showJobForm, setShowJobForm] = useState(false)
   const [editingJob, setEditingJob] = useState(null)
 
+  // Handle navigation from notifications
+  useEffect(() => {
+    if (location.state) {
+      if (location.state.activeTab) {
+        setActiveTab(location.state.activeTab)
+      }
+      if (location.state.openJobId && location.state.openApplicants) {
+        // Find the job and open applicants list
+        const job = jobs.find(j => j.id === location.state.openJobId)
+        if (job) {
+          setSelectedJob(job)
+        }
+      }
+      // Clear the state after handling
+      window.history.replaceState({}, document.title)
+    }
+  }, [location.state, jobs])
+
   useEffect(() => {
     if (user) {
       // Use real-time listener for jobs to get updated views and applications
+      // Note: We'll filter archived jobs in the component
       const q = query(
         collection(db, 'jobs'),
         where('postedBy', '==', user.uid)
@@ -105,23 +126,25 @@ export default function TalentFinderDashboard() {
       ])
       const totalImportant = acceptedSnapshot.size + shortlistedSnapshot.size
       
-      if (totalImportant > 0) {
-        const confirmed = window.confirm(
-          `This job has ${totalImportant} accepted/shortlisted applicant(s). ` +
-          'Their information has been preserved in their applications, but deleting the job will remove it from public listings. ' +
-          'Are you sure you want to delete this job post?'
-        )
-        if (!confirmed) return
-      } else {
-        if (!window.confirm('Are you sure you want to delete this job post?')) {
-          return
-        }
-      }
+      const confirmed = window.confirm(
+        `This job will be moved to Archive. ` +
+        (totalImportant > 0 
+          ? `It has ${totalImportant} accepted/shortlisted applicant(s). ` 
+          : '') +
+        'The job will be removed from public listings but can be viewed in Archive. ' +
+        'Are you sure you want to archive this job post?'
+      )
+      if (!confirmed) return
       
-      await deleteDoc(doc(db, 'jobs', jobId))
+      // Archive the job instead of deleting it
+      await updateDoc(doc(db, 'jobs', jobId), {
+        archived: true,
+        archivedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      })
       // Real-time listener will update automatically
     } catch (error) {
-      console.error('Error deleting job:', error)
+      console.error('Error archiving job:', error)
     }
   }
 
@@ -172,10 +195,22 @@ export default function TalentFinderDashboard() {
             Drafts ({jobs.filter(j => j.status === 'draft').length})
           </button>
           <button
+            className={activeTab === 'applications' ? 'tab active' : 'tab'}
+            onClick={() => setActiveTab('applications')}
+          >
+            Applications ({jobs.filter(j => (j.applications || 0) > 0).length})
+          </button>
+          <button
             className={activeTab === 'analytics' ? 'tab active' : 'tab'}
             onClick={() => setActiveTab('analytics')}
           >
             Analytics
+          </button>
+          <button
+            className={activeTab === 'archive' ? 'tab active' : 'tab'}
+            onClick={() => setActiveTab('archive')}
+          >
+            Archive ({jobs.filter(j => j.archived === true).length})
           </button>
         </div>
 
@@ -206,13 +241,55 @@ export default function TalentFinderDashboard() {
             )}
 
             <div className="jobs-grid">
-              {jobs.filter(j => activeTab === 'posts' ? j.status === 'published' : j.status === 'draft').length === 0 ? (
+              {jobs.filter(j => {
+                if (j.archived) return false // Exclude archived from published/drafts
+                return activeTab === 'posts' ? j.status === 'published' : j.status === 'draft'
+              }).length === 0 ? (
                 <div className="empty-state">
                   <p>{activeTab === 'posts' ? 'No published jobs yet. Create your first opportunity!' : 'No draft jobs. Save a draft while creating a job post!'}</p>
                 </div>
               ) : (
                 jobs
-                  .filter(j => activeTab === 'posts' ? j.status === 'published' : j.status === 'draft')
+                  .filter(j => {
+                    if (j.archived) return false // Exclude archived from published/drafts
+                    return activeTab === 'posts' ? j.status === 'published' : j.status === 'draft'
+                  })
+                  .map(job => (
+                    <JobCard
+                      key={job.id}
+                      job={job}
+                      isFinder={true}
+                      onEdit={() => {
+                        setEditingJob(job)
+                        setShowJobForm(true)
+                      }}
+                      onDelete={() => handleDeleteJob(job.id)}
+                      onMarkFilled={() => handleMarkAsFilled(job.id)}
+                      onViewApplicants={() => setSelectedJob(job)}
+                      onViewDetails={() => setSelectedJobDetail(job)}
+                    />
+                  ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'applications' && (
+          <div className="dashboard-content">
+            <div className="section-header">
+              <h2>Jobs with Applications</h2>
+              <p className="applications-subtitle">View all jobs that have received applications</p>
+            </div>
+
+            <div className="jobs-grid">
+              {jobs.filter(j => (j.applications || 0) > 0).length === 0 ? (
+                <div className="empty-state">
+                  <p>No jobs have received applications yet. When someone applies, they'll appear here.</p>
+                </div>
+              ) : (
+                jobs
+                  .filter(j => (j.applications || 0) > 0)
+                  .sort((a, b) => (b.applications || 0) - (a.applications || 0)) // Sort by application count
                   .map(job => (
                     <JobCard
                       key={job.id}
@@ -234,7 +311,42 @@ export default function TalentFinderDashboard() {
         )}
 
         {activeTab === 'analytics' && (
-          <Analytics jobs={jobs} />
+          <Analytics jobs={jobs.filter(j => !j.archived)} />
+        )}
+
+        {activeTab === 'archive' && (
+          <div className="dashboard-content">
+            <div className="section-header">
+              <h2>Archived Jobs</h2>
+              <p className="applications-subtitle">View all archived job posts</p>
+            </div>
+
+            <div className="jobs-grid">
+              {jobs.filter(j => j.archived === true).length === 0 ? (
+                <div className="empty-state">
+                  <p>No archived jobs yet. Archived jobs will appear here.</p>
+                </div>
+              ) : (
+                jobs
+                  .filter(j => j.archived === true)
+                  .sort((a, b) => {
+                    const aTime = a.archivedAt?.toDate?.() || new Date(a.archivedAt || 0)
+                    const bTime = b.archivedAt?.toDate?.() || new Date(b.archivedAt || 0)
+                    return bTime - aTime // Newest first
+                  })
+                  .map(job => (
+                    <JobCard
+                      key={job.id}
+                      job={job}
+                      isFinder={true}
+                      isArchived={true}
+                      onViewDetails={() => setSelectedJobDetail(job)}
+                      onViewApplicants={() => setSelectedJob(job)}
+                    />
+                  ))
+              )}
+            </div>
+          </div>
         )}
 
         {selectedJob && (
