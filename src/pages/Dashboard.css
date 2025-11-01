@@ -63,6 +63,16 @@
   border-radius: var(--border-radius-sm) var(--border-radius-sm) 0 0;
 }
 
+.applications-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+  margin-bottom: 1.5rem;
+}
+
+.dark-mode .applications-subtitle {
+  color: var(--text-dark-secondary);
+}
+
 .dashboard-content {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);

@@ -15,6 +15,7 @@ import {
 import { useAuth } from '../hooks/useAuth.jsx'
 import { db } from '../config/firebase'
 import { rankJobs } from '../utils/jobMatching'
+import { notifyNewApplication, getApplicantName } from '../utils/notifications'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import JobCard from '../components/JobCard'
@@ -368,6 +369,7 @@ export default function TalentSeekerDashboard() {
           {activeTab === 'applications' && (
               <div className="dashboard-content">
                 <h2>My Applications</h2>
+                <p className="applications-subtitle">View all jobs you've applied to, including those that may no longer be available.</p>
                 <div className="jobs-grid">
                   {applications.length === 0 ? (
                       <div className="empty-state">
@@ -375,8 +377,20 @@ export default function TalentSeekerDashboard() {
                       </div>
                   ) : (
                       applications.map(app => {
-                        const job = jobs.find(j => j.id === app.jobId)
+                        // Try to find job in current jobs list first
+                        let job = jobs.find(j => j.id === app.jobId)
+                        
+                        // If job not found, use preserved job data from application
+                        if (!job && app.jobData) {
+                          job = {
+                            id: app.jobId,
+                            ...app.jobData,
+                            isDeleted: true // Mark as deleted for UI display
+                          }
+                        }
+                        
                         if (!job) return null
+                        
                         return (
                             <JobCard
                                 key={app.id}
@@ -384,12 +398,20 @@ export default function TalentSeekerDashboard() {
                                 isFinder={false}
                                 applicationStatus={app.status}
                                 applicationDate={app.createdAt}
-                                onMessage={() => handleMessage(job)}
+                                onMessage={() => {
+                                  if (job.postedBy) {
+                                    handleMessage(job)
+                                  }
+                                }}
                                 onViewDetails={() => {
-                                setSelectedJobDetail(job)
-                              }}
-                                onBookmark={() => handleBookmark(job.id)}
-                                isBookmarked={bookmarks.includes(job.id)}
+                                  setSelectedJobDetail(job)
+                                }}
+                                onBookmark={() => {
+                                  if (!job.isDeleted) {
+                                    handleBookmark(job.id)
+                                  }
+                                }}
+                                isBookmarked={!job.isDeleted && bookmarks.includes(job.id)}
                             />
                         )
                       })
@@ -442,16 +464,43 @@ export default function TalentSeekerDashboard() {
                   onClose={() => setSelectedJob(null)}
                   onSubmit={async (applicationData) => {
                     try {
-                      await addDoc(collection(db, 'applications'), {
+                      const docRef = await addDoc(collection(db, 'applications'), {
                         ...applicationData,
                         jobId: selectedJob.id,
                         applicantId: user.uid,
                         status: 'pending',
-                        createdAt: serverTimestamp()
+                        createdAt: serverTimestamp(),
+                        // Preserve job data in case job is deleted
+                        jobTitle: selectedJob.title,
+                        jobData: {
+                          title: selectedJob.title,
+                          type: selectedJob.type,
+                          location: selectedJob.location,
+                          description: selectedJob.description,
+                          requiredSkills: selectedJob.requiredSkills,
+                          tags: selectedJob.tags
+                        }
                       })
                       await updateDoc(doc(db, 'jobs', selectedJob.id), {
                         applications: (selectedJob.applications || 0) + 1
                       })
+                      
+                      // Create notification for job poster
+                      try {
+                        const applicantName = await getApplicantName(user.uid)
+                        console.log('Creating notification for:', selectedJob.postedBy, 'from applicant:', user.uid)
+                        await notifyNewApplication(docRef.id, selectedJob.postedBy, selectedJob.id, applicantName, selectedJob.title)
+                        console.log('Notification created successfully')
+                      } catch (notifError) {
+                        console.error('Failed to create notification, but application was submitted:', notifError)
+                        console.error('Notification error details:', {
+                          error: notifError.message,
+                          code: notifError.code,
+                          stack: notifError.stack
+                        })
+                        // Don't fail the whole application if notification fails
+                      }
+                      
                       setSelectedJob(null)
                       fetchApplications()
                       fetchJobs()

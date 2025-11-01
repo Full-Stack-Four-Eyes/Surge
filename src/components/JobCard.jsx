@@ -40,12 +40,17 @@ export default function JobCard({
 
   return (
     <div 
-      className={`job-card ${isClickable ? 'clickable' : ''}`}
+      className={`job-card ${isClickable ? 'clickable' : ''} ${job.isDeleted ? 'job-deleted' : ''}`}
       onClick={isClickable ? onViewDetails : undefined}
     >
       <div className="job-card-header">
         <div>
           <h3 className="job-title">{job.title}</h3>
+          {job.isDeleted && (
+            <span className="badge badge-warning" style={{ fontSize: '0.75rem', marginTop: '0.25rem', display: 'inline-block' }}>
+              Job No Longer Available
+            </span>
+          )}
           <div className="job-meta">
             <span className="job-type">{job.type}</span>
             {job.location && <span className="job-location">📍 {job.location}</span>}

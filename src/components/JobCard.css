@@ -1,3 +1,16 @@
+.job-card.job-deleted {
+  opacity: 0.85;
+  border-style: dashed;
+}
+
+.job-card.job-deleted .job-title {
+  color: var(--text-secondary);
+}
+
+.dark-mode .job-card.job-deleted .job-title {
+  color: var(--text-dark-secondary);
+}
+
 .job-card {
   background: white;
   border-radius: var(--border-radius-lg);

@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import { supabase, RESUME_BUCKET_NAME } from '../config/supabase'
+import { useAuth } from '../hooks/useAuth.jsx'
+import { notifyNewApplication, getApplicantName } from '../utils/notifications'
 import './ApplicationModal.css'
 
 export default function ApplicationModal({ job, onClose, onSubmit }) {
+  const { user } = useAuth()
   const [message, setMessage] = useState('')
   const [resume, setResume] = useState(null)
   const [uploading, setUploading] = useState(false)

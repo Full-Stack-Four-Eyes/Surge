@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { collection, query, where, onSnapshot, doc, updateDoc, getDoc } from 'firebase/firestore'
 import { db } from '../config/firebase'
+import { notifyApplicationStatusChange } from '../utils/notifications'
 import Chat from './Chat'
 import './ApplicantList.css'
 
@@ -47,12 +48,41 @@ export default function ApplicantList({ job, onClose }) {
     return () => unsubscribe()
   }, [job.id])
 
-  const handleUpdateStatus = async (applicationId, newStatus) => {
+  const handleUpdateStatus = async (applicationId, newStatus, applicantId) => {
     try {
-      await updateDoc(doc(db, 'applications', applicationId), {
+      const applicationRef = doc(db, 'applications', applicationId)
+      const appDoc = await getDoc(applicationRef)
+      const appData = appDoc.data()
+      
+      // Preserve job data if marking as selected/accepted
+      const updateData = {
         status: newStatus,
         updatedAt: new Date()
-      })
+      }
+      
+      // If marking as accepted/selected, preserve job data in application
+      if ((newStatus === 'accepted' || newStatus === 'shortlisted') && !appData.jobData) {
+        const jobDoc = await getDoc(doc(db, 'jobs', job.id))
+        if (jobDoc.exists()) {
+          const jobData = jobDoc.data()
+          updateData.jobData = {
+            title: jobData.title,
+            type: jobData.type,
+            location: jobData.location,
+            description: jobData.description,
+            requiredSkills: jobData.requiredSkills,
+            tags: jobData.tags,
+            postedBy: jobData.postedBy
+          }
+        }
+      }
+      
+      await updateDoc(applicationRef, updateData)
+      
+      // Create notification for applicant
+      const jobTitle = appData.jobTitle || job.title
+      await notifyApplicationStatusChange(applicationId, applicantId, job.id, newStatus, jobTitle)
+      
       // No need to fetchApplicants - real-time listener will update automatically
     } catch (error) {
       console.error('Error updating status:', error)
@@ -90,7 +120,7 @@ export default function ApplicantList({ job, onClose }) {
                     <label className="status-label">Application Status:</label>
                     <select
                       value={app.status}
-                      onChange={(e) => handleUpdateStatus(app.id, e.target.value)}
+                      onChange={(e) => handleUpdateStatus(app.id, e.target.value, app.applicantId)}
                       className="status-select"
                     >
                       <option value="pending">📋 Pending</option>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp, addDoc, deleteDoc } from 'firebase/firestore'
+import { collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp, addDoc, deleteDoc, getDocs } from 'firebase/firestore'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { db } from '../config/firebase'
 import Navbar from '../components/Navbar'
@@ -85,13 +85,43 @@ export default function TalentFinderDashboard() {
   }
 
   const handleDeleteJob = async (jobId) => {
-    if (window.confirm('Are you sure you want to delete this job post?')) {
-      try {
-        await deleteDoc(doc(db, 'jobs', jobId))
-        // Real-time listener will update automatically
-      } catch (error) {
-        console.error('Error deleting job:', error)
+    // Check if job has accepted or shortlisted applicants
+    try {
+      // Firestore doesn't support 'in' with multiple values easily
+      // Check for accepted and shortlisted separately
+      const acceptedQuery = query(
+        collection(db, 'applications'),
+        where('jobId', '==', jobId),
+        where('status', '==', 'accepted')
+      )
+      const shortlistedQuery = query(
+        collection(db, 'applications'),
+        where('jobId', '==', jobId),
+        where('status', '==', 'shortlisted')
+      )
+      const [acceptedSnapshot, shortlistedSnapshot] = await Promise.all([
+        getDocs(acceptedQuery),
+        getDocs(shortlistedQuery)
+      ])
+      const totalImportant = acceptedSnapshot.size + shortlistedSnapshot.size
+      
+      if (totalImportant > 0) {
+        const confirmed = window.confirm(
+          `This job has ${totalImportant} accepted/shortlisted applicant(s). ` +
+          'Their information has been preserved in their applications, but deleting the job will remove it from public listings. ' +
+          'Are you sure you want to delete this job post?'
+        )
+        if (!confirmed) return
+      } else {
+        if (!window.confirm('Are you sure you want to delete this job post?')) {
+          return
+        }
       }
+      
+      await deleteDoc(doc(db, 'jobs', jobId))
+      // Real-time listener will update automatically
+    } catch (error) {
+      console.error('Error deleting job:', error)
     }
   }
 

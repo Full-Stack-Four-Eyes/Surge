@@ -2,14 +2,17 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useDarkMode } from '../hooks/useDarkMode.jsx'
+import { useUnreadMessages } from '../hooks/useUnreadMessages.jsx'
 import ChatList from './ChatList'
 import Chat from './Chat'
 import RoleToggle from './RoleToggle'
+import NotificationBell from './NotificationBell'
 import './Navbar.css'
 
 export default function Navbar() {
   const { user, logout, userData } = useAuth()
   const { isDarkMode, toggleDarkMode } = useDarkMode()
+  const unreadMessageCount = useUnreadMessages()
   const navigate = useNavigate()
   const [showChatList, setShowChatList] = useState(false)
   const [chatUser, setChatUser] = useState(null)
@@ -22,6 +25,11 @@ export default function Navbar() {
   const handleChatSelect = (userId, userName) => {
     setChatUser({ id: userId, name: userName })
     setShowChatList(false)
+  }
+
+  const handleChatListOpen = () => {
+    setShowChatList(true)
+    // Note: Unread counts will be cleared when individual chats are opened via Chat component
   }
 
   return (
@@ -45,12 +53,16 @@ export default function Navbar() {
                 <Link to="/dashboard" className="nav-link">Dashboard</Link>
                 <Link to="/profile" className="nav-link">Profile</Link>
                 <button 
-                  onClick={() => setShowChatList(!showChatList)} 
+                  onClick={handleChatListOpen} 
                   className="nav-link chat-toggle"
                   style={{ position: 'relative' }}
                 >
                   💬 Messages
+                  {unreadMessageCount > 0 && (
+                    <span className="message-badge">{unreadMessageCount > 99 ? '99+' : unreadMessageCount}</span>
+                  )}
                 </button>
+                <NotificationBell />
                 {userData && <RoleToggle />}
                 <button 
                   onClick={toggleDarkMode} 

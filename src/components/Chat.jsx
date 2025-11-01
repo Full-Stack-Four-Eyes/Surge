@@ -149,7 +149,7 @@ export default function Chat({ userId, userName, onClose }) {
   }
 
   return (
-    <div className="chat-container">
+    <div className="chat-container" onClick={(e) => e.stopPropagation()}>
       <div className="chat-header">
         <h3>{userName}</h3>
         <button onClick={onClose} className="close-btn">×</button>
