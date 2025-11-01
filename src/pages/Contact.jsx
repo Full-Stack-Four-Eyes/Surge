@@ -92,8 +92,8 @@ export default function Contact() {
                 <div className="social-icons">
                   <a href="#" className="social-icon" aria-label="Facebook">📘</a>
                   <a href="#" className="social-icon" aria-label="Twitter">🐦</a>
-                  <a href="#" className="social-icon" aria-label="LinkedIn">💼</a>
-                  <a href="#" className="social-icon" aria-label="Instagram">📷</a>
+                  <a href="https://students.atrons.net/webpages/aboutus" target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="LinkedIn">💼</a>
+                  <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1" target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="Instagram">📷</a>
                 </div>
               </div>
             </div>

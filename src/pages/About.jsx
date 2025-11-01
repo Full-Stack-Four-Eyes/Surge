@@ -141,6 +141,9 @@ export default function About() {
             <Link to="/contact" className="btn btn-secondary btn-large">
               Contact Us
             </Link>
+            <a href="https://students.atrons.net/webpages/aboutus" target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-large">
+              Learn More About Our Team
+            </a>
           </div>
         </div>
       </section>

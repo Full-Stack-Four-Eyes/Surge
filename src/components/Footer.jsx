@@ -19,10 +19,10 @@ export default function Footer() {
               <a href="#" className="social-link" aria-label="Twitter">
                 🐦
               </a>
-              <a href="#" className="social-link" aria-label="LinkedIn">
+              <a href="https://students.atrons.net/webpages/aboutus" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="LinkedIn">
                 💼
               </a>
-              <a href="#" className="social-link" aria-label="Instagram">
+              <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1" target="_blank" rel="noopener noreferrer" className="social-link" aria-label="Instagram">
                 📷
               </a>
             </div>

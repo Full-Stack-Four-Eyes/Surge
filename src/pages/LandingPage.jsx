@@ -61,13 +61,27 @@ export default function LandingPage() {
     return 350 + 32
   }
 
-  // Auto-scroll functionality
+  // Auto-scroll functionality - only restart when manual scroll ends
   useEffect(() => {
+    // Don't start if manual scroll is active
+    if (isManualScroll.current) return
+    
+    // Clear any existing auto-scroll
+    if (autoScrollRef.current) {
+      clearInterval(autoScrollRef.current)
+    }
+    
     const startAutoScroll = () => {
       autoScrollRef.current = setInterval(() => {
         if (sliderRef.current && !isManualScroll.current) {
-          const nextSlide = (currentSlide + 1) % features.length
-          scrollToSlide(nextSlide, false)
+          setCurrentSlide(prev => {
+            const next = (prev + 1) % features.length
+            // Use setTimeout to avoid state update during scroll
+            setTimeout(() => {
+              scrollToSlide(next, false)
+            }, 50)
+            return next
+          })
         }
       }, 3000)
     }
@@ -77,26 +91,45 @@ export default function LandingPage() {
     return () => {
       if (autoScrollRef.current) {
         clearInterval(autoScrollRef.current)
+        autoScrollRef.current = null
       }
     }
-  }, [currentSlide, features.length])
+  }, [features.length])
 
   const scrollToSlide = (index, isManual = true) => {
-    if (sliderRef.current) {
-      // Ensure index is within bounds
-      const safeIndex = Math.max(0, Math.min(index, features.length - 1))
+    if (!sliderRef.current) return
+    
+    // Ensure index is within bounds
+    const safeIndex = Math.max(0, Math.min(index, features.length - 1))
+    
+    // Temporarily disable scroll listener to prevent interference
+    if (isManual) {
+      isManualScroll.current = true
+    }
+    
+    // Use a slight delay to ensure DOM measurements are accurate
+    setTimeout(() => {
+      if (!sliderRef.current) return
+      
       const slideWidth = getSlideWidth()
       
-      // Calculate target scroll position
+      // Calculate target scroll position based on slide index
       let targetScroll = safeIndex * slideWidth
       
       // Get container dimensions
       const containerWidth = sliderRef.current.clientWidth
       const totalWidth = sliderRef.current.scrollWidth
-      const maxScroll = totalWidth - containerWidth
       
-      // Ensure we don't scroll past the maximum
-      targetScroll = Math.min(targetScroll, maxScroll)
+      // Calculate maximum possible scroll
+      const maxScroll = Math.max(0, totalWidth - containerWidth)
+      
+      // For the last few slides, ensure we scroll to the end if needed
+      // This handles cases where slides don't fully fill the container
+      if (safeIndex >= features.length - 1) {
+        targetScroll = maxScroll
+      } else {
+        targetScroll = Math.min(targetScroll, maxScroll)
+      }
       
       // Ensure we don't scroll to negative values
       targetScroll = Math.max(0, targetScroll)
@@ -106,12 +139,18 @@ export default function LandingPage() {
         behavior: 'smooth'
       })
       
+      // Update state
       setCurrentSlide(safeIndex)
-
+      
       if (isManual) {
         resetAutoScroll()
+      } else {
+        // Re-enable auto-scroll tracking after auto-scroll completes
+        setTimeout(() => {
+          isManualScroll.current = false
+        }, 600)
       }
-    }
+    }, 50)
   }
 
   const nextSlide = () => {
@@ -135,26 +174,40 @@ export default function LandingPage() {
   const resetAutoScroll = () => {
     isManualScroll.current = true
 
+    // Clear existing auto-scroll
     if (autoScrollRef.current) {
       clearInterval(autoScrollRef.current)
+      autoScrollRef.current = null
     }
 
+    // Restart auto-scroll after user inactivity
     setTimeout(() => {
       isManualScroll.current = false
-      autoScrollRef.current = setInterval(() => {
-        if (sliderRef.current && !isManualScroll.current) {
-          const next = (currentSlide + 1) % features.length
-          scrollToSlide(next, false)
+      // The useEffect will restart auto-scroll when isManualScroll becomes false
+      // We trigger a re-render by updating a dummy state or force restart
+      if (!autoScrollRef.current && sliderRef.current) {
+        const startAutoScroll = () => {
+          autoScrollRef.current = setInterval(() => {
+            if (sliderRef.current && !isManualScroll.current) {
+              setCurrentSlide(prev => {
+                const next = (prev + 1) % features.length
+                setTimeout(() => scrollToSlide(next, false), 50)
+                return next
+              })
+            }
+          }, 3000)
         }
-      }, 3000)
+        startAutoScroll()
+      }
     }, 5000)
   }
 
   const handleScroll = () => {
+    // Only update slide index on automatic scroll, not manual
     if (sliderRef.current && !isManualScroll.current) {
       const slideWidth = getSlideWidth()
       const scrollPosition = sliderRef.current.scrollLeft
-      const newSlide = Math.round(scrollPosition / slideWidth) % features.length
+      const newSlide = Math.min(Math.round(scrollPosition / slideWidth), features.length - 1)
       setCurrentSlide(newSlide)
     }
   }
