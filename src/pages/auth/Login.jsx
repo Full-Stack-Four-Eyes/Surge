@@ -57,7 +57,7 @@ export default function Login() {
           <h1>Welcome Back</h1>
           <p className="auth-subtitle">Sign in to your CampusConnect account</p>
 
-          {error && <div className="error-message">{error}</div>}
+          {error && <div className="error-message">Invalid Email or Password. Please try again.</div>}
 
           <form onSubmit={handleSubmit} className="auth-form">
             <div className="form-group">
