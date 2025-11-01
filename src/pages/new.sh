@@ -1,0 +1,1 @@
+gsutil cors set cors.json gs://fsfe-surge-70afe.appspot.com
