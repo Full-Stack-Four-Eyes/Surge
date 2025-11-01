@@ -4,7 +4,7 @@
 }
 
 .dashboard-container {
-  max-width: 1200px;
+  max-width: 1600px;
   margin: 0 auto;
   padding: 2rem;
 }
@@ -71,6 +71,7 @@
   box-shadow: var(--shadow-xl);
   border: 1px solid rgba(255, 255, 255, 0.8);
   transition: var(--transition);
+  width: 100%;
 }
 
 .dark-mode .dashboard-content {
@@ -155,13 +156,15 @@
   gap: 1.5rem;
 }
 
-.jobs-grid > * {
-  min-width: 0;
-}
-
-@media (max-width: 1200px) {
+@media (max-width: 1400px) {
   .jobs-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1401px) {
+  .jobs-grid {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
@@ -169,6 +172,10 @@
   .jobs-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.jobs-grid > * {
+  min-width: 0;
 }
 
 .empty-state {
