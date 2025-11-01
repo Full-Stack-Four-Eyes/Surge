@@ -55,9 +55,9 @@ export default function Footer() {
             <ul className="footer-links">
               <li><Link to="/contact">Help Center</Link></li>
               <li><Link to="/contact">Contact Us</Link></li>
-              <li><a href="#">Privacy Policy</a></li>
-              <li><a href="#">Terms of Service</a></li>
-              <li><a href="#">FAQ</a></li>
+              <li><Link to="/privacy">Privacy Policy</Link></li>
+              <li><Link to="/terms">Terms of Service</Link></li>
+              <li><Link to="/faq">FAQ</Link></li>
             </ul>
           </div>
         </div>

@@ -84,6 +84,8 @@
   font-size: 2rem;
   width: 40px;
   height: 40px;
+  min-width: 40px;
+  min-height: 40px;
   border-radius: 50%;
   cursor: pointer;
   display: flex;
@@ -92,6 +94,7 @@
   transition: var(--transition);
   flex-shrink: 0;
   margin: 0;
+  padding: 0;
   line-height: 1;
   font-weight: 300;
 }

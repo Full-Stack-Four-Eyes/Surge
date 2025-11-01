@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth.jsx'
 import { db } from '../config/firebase'
 import { calculateProfileScore } from '../utils/profileScore'
 import Navbar from '../components/Navbar'
+import Footer from '../components/Footer'
 import './Profile.css'
 
 export default function Profile() {
@@ -354,6 +355,7 @@ export default function Profile() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   )
 }

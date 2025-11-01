@@ -54,7 +54,7 @@ export default function JobDetailModal({ job, matchScore, isBookmarked, onBookma
               )}
             </div>
           </div>
-          <button onClick={onClose} className="close-btn">×</button>
+          <button onClick={onClose} className="close-btn" aria-label="Close">×</button>
         </div>
 
         <div className="job-detail-content">

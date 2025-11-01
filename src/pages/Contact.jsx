@@ -64,8 +64,7 @@ export default function Contact() {
                   <div className="info-icon">📧</div>
                   <div className="info-content">
                     <h3>Email</h3>
-                    <p>support@campusconnect.com</p>
-                    <p>info@campusconnect.com</p>
+                    <p>support@atrons.net</p>
                   </div>
                 </div>
 

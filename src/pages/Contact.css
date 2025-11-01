@@ -29,6 +29,11 @@
 .contact-content {
   padding: 4rem 2rem;
   background: var(--bg-secondary);
+  transition: var(--transition);
+}
+
+.dark-mode .contact-content {
+  background: var(--bg-dark-secondary);
 }
 
 .contact-wrapper {
@@ -124,6 +129,61 @@
   padding: 2.5rem;
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-xl);
+  transition: var(--transition);
+}
+
+.dark-mode .contact-form-wrapper {
+  background: var(--bg-dark-secondary);
+  border: 2px solid var(--border-dark);
+}
+
+.dark-mode .contact-form-wrapper h2 {
+  color: var(--text-dark-primary);
+}
+
+.dark-mode .contact-info h2 {
+  color: var(--text-dark-primary);
+}
+
+.dark-mode .info-description {
+  color: var(--text-dark-secondary);
+}
+
+.dark-mode .info-content h3 {
+  color: var(--text-dark-primary);
+}
+
+.dark-mode .info-content p {
+  color: var(--text-dark-secondary);
+}
+
+.dark-mode .social-links {
+  border-color: var(--border-dark);
+}
+
+.dark-mode .social-links h3 {
+  color: var(--text-dark-primary);
+}
+
+.dark-mode .social-icon {
+  background: var(--bg-dark-secondary);
+  border-color: var(--border-dark);
+}
+
+.dark-mode .form-group label {
+  color: var(--text-dark-primary);
+}
+
+.dark-mode .form-group input,
+.dark-mode .form-group textarea {
+  background: var(--bg-dark);
+  border-color: var(--border-dark);
+  color: var(--text-dark-primary);
+}
+
+.dark-mode .form-group input:focus,
+.dark-mode .form-group textarea:focus {
+  border-color: var(--primary-color);
 }
 
 .contact-form-wrapper h2 {
@@ -186,6 +246,28 @@
 .faq-section {
   padding: 5rem 2rem;
   background: white;
+  transition: var(--transition);
+}
+
+.dark-mode .faq-section {
+  background: var(--bg-dark);
+}
+
+.dark-mode .section-title {
+  color: var(--text-dark-primary);
+}
+
+.dark-mode .faq-item {
+  background: var(--bg-dark-secondary);
+  border-color: var(--border-dark);
+}
+
+.dark-mode .faq-item h3 {
+  color: var(--text-dark-primary);
+}
+
+.dark-mode .faq-item p {
+  color: var(--text-dark-secondary);
 }
 
 .faq-grid {

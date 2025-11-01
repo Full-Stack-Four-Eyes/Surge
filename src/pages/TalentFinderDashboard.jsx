@@ -3,6 +3,7 @@ import { collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp, 
 import { useAuth } from '../hooks/useAuth.jsx'
 import { db } from '../config/firebase'
 import Navbar from '../components/Navbar'
+import Footer from '../components/Footer'
 import JobPostForm from '../components/JobPostForm'
 import JobCard from '../components/JobCard'
 import JobDetailModal from '../components/JobDetailModal'
@@ -241,6 +242,7 @@ export default function TalentFinderDashboard() {
       </div>
 
       <SeedJobsButton />
+      <Footer />
     </div>
   )
 }

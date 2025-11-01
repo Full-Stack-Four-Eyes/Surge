@@ -29,6 +29,11 @@
 .about-mission {
   padding: 5rem 2rem;
   background: white;
+  transition: var(--transition);
+}
+
+.dark-mode .about-mission {
+  background: var(--bg-dark);
 }
 
 .mission-content {
@@ -83,6 +88,11 @@
 .about-values {
   padding: 5rem 2rem;
   background: var(--bg-secondary);
+  transition: var(--transition);
+}
+
+.dark-mode .about-values {
+  background: var(--bg-dark-secondary);
 }
 
 .section-title {
@@ -107,6 +117,19 @@
   box-shadow: var(--shadow-md);
   transition: var(--transition);
   border: 2px solid var(--border-color);
+}
+
+.dark-mode .value-card {
+  background: var(--bg-dark-secondary);
+  border-color: var(--border-dark);
+}
+
+.dark-mode .value-card h3 {
+  color: var(--text-dark-primary);
+}
+
+.dark-mode .value-card p {
+  color: var(--text-dark-secondary);
 }
 
 .value-card:hover {
@@ -136,6 +159,31 @@
 .about-features {
   padding: 5rem 2rem;
   background: white;
+  transition: var(--transition);
+}
+
+.dark-mode .about-features {
+  background: var(--bg-dark);
+}
+
+.dark-mode .mission-text h2 {
+  color: var(--text-dark-primary);
+}
+
+.dark-mode .mission-text p {
+  color: var(--text-dark-secondary);
+}
+
+.dark-mode .section-title {
+  color: var(--text-dark-primary);
+}
+
+.dark-mode .feature-content h3 {
+  color: var(--text-dark-primary);
+}
+
+.dark-mode .feature-content p {
+  color: var(--text-dark-secondary);
 }
 
 .features-list {

@@ -16,6 +16,7 @@ import { useAuth } from '../hooks/useAuth.jsx'
 import { db } from '../config/firebase'
 import { rankJobs } from '../utils/jobMatching'
 import Navbar from '../components/Navbar'
+import Footer from '../components/Footer'
 import JobCard from '../components/JobCard'
 import ApplicationModal from '../components/ApplicationModal'
 import JobDetailModal from '../components/JobDetailModal'
@@ -493,6 +494,7 @@ export default function TalentSeekerDashboard() {
             />
           )}
         </div>
+      <Footer />
       </div>
   )
 }

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth.jsx'
 import Navbar from '../../components/Navbar'
+import Footer from '../../components/Footer'
 import './Auth.css'
 
 export default function Signup() {
@@ -165,6 +166,7 @@ export default function Signup() {
           </p>
         </div>
       </div>
+      <Footer />
     </div>
   )
 }

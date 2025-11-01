@@ -130,7 +130,7 @@ export default function LandingPage() {
               <div className="testimonial-author">
                 <div className="author-avatar">👨‍💻</div>
                 <div className="author-info">
-                  <div className="author-name">Alex Chen</div>
+                  <div className="author-name">Ahsan Siddique</div>
                   <div className="author-role">Computer Science Student</div>
                 </div>
               </div>
@@ -144,7 +144,7 @@ export default function LandingPage() {
               <div className="testimonial-author">
                 <div className="author-avatar">👩‍💼</div>
                 <div className="author-info">
-                  <div className="author-name">Sarah Johnson</div>
+                  <div className="author-name">Ateeb Khaid</div>
                   <div className="author-role">Business Major</div>
                 </div>
               </div>
@@ -158,7 +158,7 @@ export default function LandingPage() {
               <div className="testimonial-author">
                 <div className="author-avatar">👨‍🎓</div>
                 <div className="author-info">
-                  <div className="author-name">Michael Park</div>
+                  <div className="author-name">Laiba Badar</div>
                   <div className="author-role">Entrepreneur</div>
                 </div>
               </div>
