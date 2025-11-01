@@ -45,7 +45,8 @@ export default function ApplicationModal({ job, onClose, onSubmit }) {
           // Sanitize filename to avoid issues
           const sanitizedName = resume.name.replace(/[^a-zA-Z0-9._-]/g, '_')
           const fileName = `${job.id}_${Date.now()}_${sanitizedName}`
-          const filePath = `resumes/${fileName}`
+          // Upload directly to bucket root (bucket is already named 'resumes')
+          const filePath = fileName
 
           // Upload file to Supabase Storage
           const { data: uploadData, error: uploadError } = await supabase.storage
@@ -56,6 +57,11 @@ export default function ApplicationModal({ job, onClose, onSubmit }) {
             })
 
           if (uploadError) {
+            console.error('Upload error details:', uploadError)
+            // Provide more specific error message
+            if (uploadError.message?.includes('row-level security')) {
+              throw new Error('Storage permission error. Please contact support or try again later.')
+            }
             throw uploadError
           }
 
@@ -67,7 +73,10 @@ export default function ApplicationModal({ job, onClose, onSubmit }) {
           resumeUrl = urlData.publicUrl
         } catch (uploadError) {
           console.error('Upload error:', uploadError)
-          setError('Failed to upload resume. Please try again or submit without a resume.')
+          const errorMessage = uploadError.message?.includes('row-level security') 
+            ? 'Storage permissions not configured. Please contact support.'
+            : 'Failed to upload resume. Please try again or submit without a resume.'
+          setError(errorMessage)
           setUploading(false)
           return
         }
