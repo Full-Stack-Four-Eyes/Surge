@@ -46,6 +46,18 @@ export default function LandingPage() {
       icon: '📊',
       title: 'Post Analytics',
       description: 'Track views, applicants, and engagement stats.'
+    },
+    {
+      id: 7,
+      icon: '🔔',
+      title: 'Smart Notifications',
+      description: 'Get instant alerts for applications, messages, and status updates.'
+    },
+    {
+      id: 8,
+      icon: '📝',
+      title: 'Resume Management',
+      description: 'Upload and manage your resume with secure cloud storage.'
     }
   ]
 
@@ -107,27 +119,35 @@ export default function LandingPage() {
       isManualScroll.current = true
     }
     
-    // Use a slight delay to ensure DOM measurements are accurate
-    setTimeout(() => {
+    // Use requestAnimationFrame for smoother scrolling and accurate measurements
+    requestAnimationFrame(() => {
       if (!sliderRef.current) return
       
       const slideWidth = getSlideWidth()
-      
-      // Calculate target scroll position based on slide index
-      let targetScroll = safeIndex * slideWidth
       
       // Get container dimensions
       const containerWidth = sliderRef.current.clientWidth
       const totalWidth = sliderRef.current.scrollWidth
       
+      // Calculate target scroll position based on slide index
+      let targetScroll = safeIndex * slideWidth
+      
       // Calculate maximum possible scroll
       const maxScroll = Math.max(0, totalWidth - containerWidth)
       
-      // For the last few slides, ensure we scroll to the end if needed
-      // This handles cases where slides don't fully fill the container
-      if (safeIndex >= features.length - 1) {
+      // For all slides, ensure we don't exceed maxScroll
+      // But for the last slide, we want to scroll to the very end
+      if (safeIndex === features.length - 1) {
+        // Last slide: scroll to the maximum possible position
         targetScroll = maxScroll
+      } else if (safeIndex === features.length - 2) {
+        // Second to last slide: calculate normal position
+        targetScroll = safeIndex * slideWidth
+        // Ensure we don't exceed max, but allow it to be close to max
+        targetScroll = Math.min(targetScroll, maxScroll)
       } else {
+        // All other slides: normal calculation
+        targetScroll = safeIndex * slideWidth
         targetScroll = Math.min(targetScroll, maxScroll)
       }
       
@@ -139,7 +159,7 @@ export default function LandingPage() {
         behavior: 'smooth'
       })
       
-      // Update state
+      // Update state immediately
       setCurrentSlide(safeIndex)
       
       if (isManual) {
@@ -150,25 +170,17 @@ export default function LandingPage() {
           isManualScroll.current = false
         }, 600)
       }
-    }, 50)
+    })
   }
 
   const nextSlide = () => {
-    if (currentSlide < features.length - 1) {
-      scrollToSlide(currentSlide + 1, true)
-    } else {
-      // Loop back to start
-      scrollToSlide(0, true)
-    }
+    const nextIndex = (currentSlide + 1) % features.length
+    scrollToSlide(nextIndex, true)
   }
 
   const prevSlide = () => {
-    if (currentSlide > 0) {
-      scrollToSlide(currentSlide - 1, true)
-    } else {
-      // Loop to end
-      scrollToSlide(features.length - 1, true)
-    }
+    const prevIndex = currentSlide === 0 ? features.length - 1 : currentSlide - 1
+    scrollToSlide(prevIndex, true)
   }
 
   const resetAutoScroll = () => {
@@ -291,7 +303,7 @@ export default function LandingPage() {
             </button>
 
             <div className="slide-indicators">
-              {features.map((_, index) => (
+              {features.slice(0, 6).map((_, index) => (
                 <button
                   key={index}
                   className={`indicator ${currentSlide === index ? 'active' : ''}`}

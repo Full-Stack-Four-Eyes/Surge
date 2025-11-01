@@ -830,16 +830,27 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  border: none;
-  background: rgba(255, 255, 255, 0.3);
+  border: 2px solid #0e8dad;
+  background: rgba(255, 255, 255, 0.5);
   cursor: pointer;
   transition: all 0.3s ease;
+}
+
+/* Light mode indicator styling */
+:not(.dark-mode) .indicator {
+  background: rgba(14, 141, 173, 0.2);
+  border-color: #0e8dad;
 }
 
 .indicator.active {
   background: #0e8dad;
   transform: scale(1.2);
   box-shadow: 0 0 10px rgba(14, 141, 173, 0.5);
+}
+
+.indicator:hover {
+  background: #0e8dad;
+  transform: scale(1.1);
 }
 
 .features-slider-container {
